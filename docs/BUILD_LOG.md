@@ -198,3 +198,72 @@ Implement Phase 1 creature species and creature instance data models, author the
 ### Next Recommended Task
 * Obtain user approval for Phase 1 completion.
 * Proceed to **Phase 2: NFC Abstraction, Simulated Scanning & Card Registration**.
+
+---
+
+## Task 2: Phase 2 NFC Abstraction, Simulated Scanning & Card Registration
+
+* **Date**: October 11, 2026
+* **Phase**: Phase 2
+* **Status**: Completed & Verified
+
+### Objective
+Implement the hardware-abstracted NFC scanning workflow, software-driven simulated NFC reader with predefined test cards, physical-to-digital card registry, robust validation pipeline (duplicate prevention, unknown code detection, malformed input handling), persistent registered card storage, and an automated test suite verifying scan events and cold-boot reboot retention.
+
+### Files Created or Modified
+* `Assets/Scripts/NFC/INfcReader.cs` — Hardware-agnostic interface for NFC tag readers (`IsAvailable`, `IsListening`, `OnCardScanned`, `OnScanError`).
+* `Assets/Scripts/NFC/SimulatedNfcReader.cs` — Software simulation implementing `INfcReader` with 4 predefined test card codes (`ML-CARD-IGNI-01` to `04`).
+* `Assets/Scripts/NFC/CardRegistryEntry.cs` — Metadata container linking card codes to creature species and batch identifiers.
+* `Assets/Scripts/NFC/CardRegistry.cs` — Static registry mapping prototype NFC card codes to target creature species templates.
+* `Assets/Scripts/NFC/RegistrationResult.cs` — Structured result envelope (`Success`, `Duplicate`, `UnknownCode`, `MalformedInput`, `Error`).
+* `Assets/Scripts/NFC/ScanAttemptRecord.cs` — Timestamped audit record of individual scan attempts.
+* `Assets/Scripts/NFC/IRegisteredCardRepository.cs` — Interface managing persistent enrollment of NFC card codes.
+* `Assets/Scripts/NFC/JsonRegisteredCardStorage.cs` — Atomic JSON file storage tracking registered card mappings across app lifecycles.
+* `Assets/Scripts/NFC/NfcRegistrationService.cs` — Orchestration service executing syntax checks, duplicate rejection, creature minting, and persistence.
+* `Assets/Scripts/UI/INfcScanView.cs` — View contract for NFC scanning UI, test cards rack, feedback banners, and history logs.
+* `Assets/Scripts/UI/NfcScanPresenter.cs` — Presenter connecting scanner views to `INfcReader` and `NfcRegistrationService`.
+* `Assets/Scripts/UI/MockNfcScanView.cs` — Test double for automated UI presenter tests.
+* `Assets/Scripts/UI/NfcScanScreenUI.cs` — Unity `MonoBehaviour` UI adapter with conditional compilation.
+* `Assets/Scripts/Tests/Phase2Tests.cs` — Automated test harness covering TC-201 through TC-207.
+* `run-phase2-tests.bat` — Standalone one-click Windows test runner for Phase 2.
+* `run-phase1-tests.bat` — Updated with explicit compiler `/main` entry point for multi-test harness safety.
+* `docs/PROJECT_PLAN.md` — Marked Phase 2 acceptance criteria and Milestone M2 as PASSED.
+* `docs/BUILD_LOG.md` — Appended Task 2 execution log.
+* `docs/TEST_CHECKLIST.md` — Updated TC-201 through TC-207 to PASSED.
+
+### Implementation Summary
+1. **Hardware Abstraction**: Encapsulated tag scanning behind `INfcReader`, enabling seamless transition between `SimulatedNfcReader` (Phases 2-4) and `AndroidNfcReader` (Phase 5).
+2. **Robust Validation Pipeline**: Enforced strict syntax validation (`^ML-CARD-[A-Z0-9]+-\d+$`), duplicate registration rejection with clear existing instance IDs, and unknown code handling.
+3. **Card Registration Persistence**: Added `JsonRegisteredCardStorage` ensuring that once a card is registered, restarting the application reliably preserves the registration and rejects duplicate scans.
+4. **Scan Attempt History**: All scan attempts are logged chronologically with timestamps, raw codes, and outcomes.
+5. **No Battles or Physical Native NFC**: Maintained clean phase boundaries by deferring physical Android JNI code to Phase 5 and combat to Phase 3.
+
+### Tests Executed and Actual Results
+* **TC-201 (Valid Card Code Registration)**:
+  - *Result*: Scanned `ML-CARD-IGNI-01`; confirmed Ignisaur minted, added to collection, and card recorded.
+  - *Verdict*: **PASSED**
+* **TC-202 (Duplicate Registration Rejection)**:
+  - *Result*: Re-scanned `ML-CARD-AQUA-02`; confirmed duplicate warning dispatched and collection count unchanged.
+  - *Verdict*: **PASSED**
+* **TC-203 (Unknown Card Code Rejection)**:
+  - *Result*: Scanned unmapped code `ML-CARD-UNKNOWN-99`; confirmed rejection as UnknownCode without mutating collection.
+  - *Verdict*: **PASSED**
+* **TC-204 (Malformed Input Rejection)**:
+  - *Result*: Tested empty and non-conforming strings (`NOT-A-CARD`, `ML-CARD`, etc.); confirmed all rejected with MalformedInput.
+  - *Verdict*: **PASSED**
+* **TC-205 (Scan Attempt History Tracking)**:
+  - *Result*: Executed 4 distinct scans; confirmed all 4 recorded chronologically with exact status and timestamps.
+  - *Verdict*: **PASSED**
+* **TC-206 (Scanner Interface Decoupling)**:
+  - *Result*: Swapped simulator for a custom mock hardware reader; confirmed registration pipeline executed identically via `INfcReader`.
+  - *Verdict*: **PASSED**
+* **TC-207 (Cold Boot Persistence & Duplicate Retention)**:
+  - *Result*: Registered card in session 1, closed repository, cold-booted session 2; confirmed duplicate was immediately rejected in the new session.
+  - *Verdict*: **PASSED**
+
+### Known Issues
+* None. All 7 Phase 2 tests and 7 Phase 1 regression tests passed with 0 failures and 0 warnings.
+
+### Next Recommended Task
+* Obtain user approval for Phase 2 completion.
+* Proceed to **Phase 3: Pure Battle Engine, Deterministic Calculations & Battle UI**.

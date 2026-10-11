@@ -50,12 +50,13 @@
 
 | Test ID | Description | Test Steps | Expected Result | Actual Result | Status |
 |---|---|---|---|---|---|
-| **TC-201** | Valid card code registration | Input valid test code `ML-CARD-IGNI-01` into simulator | Creature instantiated, added to collection, and saved | Not executed | Pending |
-| **TC-202** | Duplicate card code rejection | Scan previously registered code `ML-CARD-IGNI-01` again | Registration rejected; clear error message displayed | Not executed | Pending |
-| **TC-203** | Unknown card code rejection | Input unmapped code `ML-CARD-UNKNOWN-99` | Rejected with "Unknown Card Code" notice; no creature added | Not executed | Pending |
-| **TC-204** | Malformed code rejection | Input empty or invalid string `###INVALID###` | Rejected with format validation error | Not executed | Pending |
-| **TC-205** | Scan history session log | Perform 3 scans (success, duplicate, unknown) | Session scan log records all 3 attempts with timestamps | Not executed | Pending |
-| **TC-206** | Reader interface decoupling | Verify registration logic executes via `INfcReader` interface | Reader can be swapped without modifying registration service | Not executed | Pending |
+| **TC-201** | Valid card code registration | Input valid test code `ML-CARD-IGNI-01` into simulator | Creature instantiated, added to collection, and saved | Verified in Phase2Tests: Ignisaur minted, added to collection, card registered | **PASSED** |
+| **TC-202** | Duplicate card code rejection | Scan previously registered code `ML-CARD-IGNI-01` again | Registration rejected; clear error message displayed | Verified rejection: collection count unchanged, duplicate warning returned | **PASSED** |
+| **TC-203** | Unknown card code rejection | Input unmapped code `ML-CARD-UNKNOWN-99` | Rejected with "Unknown Card Code" notice; no creature added | Verified rejection: unknown code recognized, collection remains clean | **PASSED** |
+| **TC-204** | Malformed code rejection | Input empty or invalid strings (e.g. `###BAD###`, `""`) | Rejected with format validation error | Verified syntax regex guard rejects all malformed variants | **PASSED** |
+| **TC-205** | Scan attempt history tracking | Perform multiple scans (success, duplicate, unknown, malformed) | Session scan log records all attempts with timestamps & status | Verified `service.ScanHistory` accurately logged 4 consecutive attempts | **PASSED** |
+| **TC-206** | Reader interface decoupling | Verify registration logic executes via `INfcReader` interface | Reader can be swapped without modifying registration service | Verified pluggable `TestHardwareMockReader` triggers registration identically | **PASSED** |
+| **TC-207** | Cold boot persistence & duplicate retention | Register card in session 1, restart app, re-scan in session 2 | Persistent card storage preserves registrations; duplicate rejected | Verified session 2 cold boot detects previous registration and rejects duplicate | **PASSED** |
 
 ---
 

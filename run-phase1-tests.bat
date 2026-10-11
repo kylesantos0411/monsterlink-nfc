@@ -13,7 +13,7 @@ if not exist "%CSC%" (
 )
 
 echo Compiling Phase 1 test suite...
-powershell -Command "$files = (Get-ChildItem -Path 'Assets\Scripts' -Filter '*.cs' -Recurse).FullName; & '%CSC%' /nologo /out:Phase1Tests.exe /target:exe $files"
+powershell -Command "$files = (Get-ChildItem -Path 'Assets\Scripts' -Filter '*.cs' -Recurse | Where-Object { $_.Name -ne 'Phase2Tests.cs' }).FullName; & '%CSC%' /nologo /main:MonsterLink.Tests.Phase1Tests /out:Phase1Tests.exe /target:exe $files"
 
 if %ERRORLEVEL% NEQ 0 (
     echo Compilation failed!

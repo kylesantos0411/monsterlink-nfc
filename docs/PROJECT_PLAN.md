@@ -67,27 +67,28 @@
 ### Phase 2: NFC Abstraction, Simulated Scanning & Card Registration
 * **Goal**: Build the hardware-abstracted NFC scanning workflow, tag code validation, simulated scanning UI for development, and duplicate registration prevention.
 * **Prerequisites**: Phase 1 approved and validated.
+* **Status**: **COMPLETED & VERIFIED**
 * **Deliverables**:
   - `INfcReader` interface defining standard scan events and payload retrieval:
-    - `event Action<NfcScanResult> OnCardScanned;`
+    - `event Action<string> OnCardScanned;`
     - `void StartListening(); void StopListening();`
   - `SimulatedNfcReader`: Keyboard/UI-driven mock reader allowing input of test card strings (e.g., `ML-CARD-IGNI-01`, `ML-CARD-AQUA-02`, etc.).
+  - `CardRegistry` & `CardRegistryEntry`: Mapping physical test card codes to creature species templates.
+  - `IRegisteredCardRepository` & `JsonRegisteredCardStorage`: Persistent local storage saving enrolled cards and preventing duplicate registration across reboots.
   - `NfcRegistrationService`:
     - Validates card code format and syntax.
     - Queries prototype card registry mapping card codes to creature species.
     - Checks collection for existing registered card codes.
     - Prevents duplicate registration of the same physical tag.
     - Dispatches registration results (Success, Duplicate, Unknown Code, Invalid Format).
-  - Scan NFC UI screen:
-    - Interactive input field and quick-select buttons for test codes.
-    - Visual feedback for scanning status, success popup, and error banners.
-    - Scan attempt history log in session memory.
+  - `INfcScanView`, `NfcScanPresenter`, `MockNfcScanView`, and `NfcScanScreenUI`.
+  - Automated test suite `Phase2Tests.cs` and batch runner `run-phase2-tests.bat`.
 * **Acceptance Criteria**:
-  - [ ] Scanning a valid, unregistered card code adds the corresponding creature instance to the collection.
-  - [ ] Scanning an already registered card code is rejected with a clear duplicate warning.
-  - [ ] Scanning an unrecognized or malformed code produces a specific, friendly error.
-  - [ ] Every scan attempt is logged with timestamp, code, and outcome.
-  - [ ] The registration pipeline has no direct coupling to hardware, functioning identically under simulated inputs.
+  - [x] Scanning a valid, unregistered card code adds the corresponding creature instance to the collection.
+  - [x] Scanning an already registered card code is rejected with a clear duplicate warning.
+  - [x] Scanning an unrecognized or malformed code produces a specific, friendly error.
+  - [x] Every scan attempt is logged with timestamp, code, and outcome.
+  - [x] The registration pipeline has no direct coupling to hardware, functioning identically under simulated inputs.
 
 ---
 
@@ -181,7 +182,7 @@
 |---|---|---|---|
 | **M0: Project Setup & Docs** | Phase 0 | **PASSED** | Clean repo, structured directories, approved plan |
 | **M1: Collection & Data Core** | Phase 1 | **PASSED** | 4 sample creatures visible, persistent save/load functional |
-| **M2: Simulated NFC System** | Phase 2 | Pending | Card codes scanned, duplicate check prevents double-register |
+| **M2: Simulated NFC System** | Phase 2 | **PASSED** | Card codes scanned, duplicate check prevents double-register |
 | **M3: Combat Engine & UI** | Phase 3 | Pending | Deterministic battles, victory/defeat detected and rendered |
 | **M4: Battle History** | Phase 4 | Pending | Records saved, history viewer renders past battles |
 | **M5: Physical Android NFC** | Phase 5 | Pending | Physical tag scan succeeds on Android test device |
