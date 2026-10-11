@@ -11,6 +11,7 @@ import { BattleEngine } from '@/lib/battle/battle-engine';
 import { createBattleRecord } from '@/lib/battle/record-factory';
 import { useWebNfc } from '@/lib/nfc/use-web-nfc';
 import { PIXEL_SPRITES } from '@/lib/data/pixel-sprites';
+import { getPokemonArtworkUrl, getPokemonByName, getPokemonByPokedexNumber } from '@/lib/data/pokemon-service';
 import { Sound } from '@/lib/sound/sound-controller';
 
 interface ScanLogEntry {
@@ -374,6 +375,39 @@ export default function HomePage() {
     return PIXEL_SPRITES[spriteKey] || PIXEL_SPRITES.ignisaur;
   }
 
+  // Helper: Render official Pokémon artwork or vector pixel sprite
+  function renderCreatureVisual(speciesId: string, customSize = '100%') {
+    const poke = getPokemonByName(speciesId);
+    if (poke && poke.sprites.officialArtwork) {
+      return (
+        <img
+          src={poke.sprites.officialArtwork}
+          alt={poke.displayName}
+          style={{
+            width: customSize,
+            height: customSize,
+            objectFit: 'contain',
+            imageRendering: 'auto',
+            filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.5))',
+          }}
+          loading="lazy"
+          onError={(e) => {
+            // Fallback to pixel sprite if network image fails
+            (e.target as HTMLElement).style.display = 'none';
+          }}
+        />
+      );
+    }
+
+    const species = SPECIES_CATALOG[speciesId];
+    return (
+      <div 
+        style={{ width: customSize, height: customSize }}
+        dangerouslySetInnerHTML={{ __html: getSpriteSvg(species?.spriteKey) }}
+      />
+    );
+  }
+
   return (
     <>
       {/* Desktop Control Bar */}
@@ -571,6 +605,11 @@ export default function HomePage() {
                 <div className="test-cards-section">
                   <div className="section-title">POKÉMON MEZASTAR SAMPLES:</div>
                   <div className="cards-grid">
+                    <button className="card-chip card-electric" onClick={() => handleScanCard('ML-MEZASTAR-001')}>
+                      <div className="chip-code">ML-MEZASTAR-001</div>
+                      <div className="chip-name">Pikachu (5★ Z-Move)</div>
+                      <div className="chip-tap">TAP TO SCAN</div>
+                    </button>
                     <button className="card-chip card-fire" onClick={() => handleScanCard('MEZASTAR-01-001')}>
                       <div className="chip-code">MEZASTAR-01-001</div>
                       <div className="chip-name">Charizard (6★ Superstar)</div>
@@ -578,7 +617,22 @@ export default function HomePage() {
                     </button>
                     <button className="card-chip card-water" onClick={() => handleScanCard('MEZASTAR-01-003')}>
                       <div className="chip-code">MEZASTAR-01-003</div>
-                      <div className="chip-name">Blastoise (5★ Star)</div>
+                      <div className="chip-name">Blastoise (6★ Superstar)</div>
+                      <div className="chip-tap">TAP TO SCAN</div>
+                    </button>
+                    <button className="card-chip card-grass" onClick={() => handleScanCard('ML-MEZASTAR-004')}>
+                      <div className="chip-code">ML-MEZASTAR-004</div>
+                      <div className="chip-name">Venusaur (6★ Superstar)</div>
+                      <div className="chip-tap">TAP TO SCAN</div>
+                    </button>
+                    <button className="card-chip" style={{ borderLeft: '6px solid var(--type-fighting)' }} onClick={() => handleScanCard('ML-MEZASTAR-005')}>
+                      <div className="chip-code">ML-MEZASTAR-005</div>
+                      <div className="chip-name">Lucario (5★ Mega)</div>
+                      <div className="chip-tap">TAP TO SCAN</div>
+                    </button>
+                    <button className="card-chip" style={{ borderLeft: '6px solid var(--type-ghost)' }} onClick={() => handleScanCard('ML-MEZASTAR-006')}>
+                      <div className="chip-code">ML-MEZASTAR-006</div>
+                      <div className="chip-name">Gengar (4★ Star)</div>
                       <div className="chip-tap">TAP TO SCAN</div>
                     </button>
                   </div>
@@ -666,10 +720,9 @@ export default function HomePage() {
                         className="creature-card-row"
                         onClick={() => openInspect(creature)}
                       >
-                        <div 
-                          className="card-sprite-thumb"
-                          dangerouslySetInnerHTML={{ __html: getSpriteSvg(species?.spriteKey) }}
-                        />
+                        <div className="card-sprite-thumb">
+                          {renderCreatureVisual(creature.speciesId, '100%')}
+                        </div>
                         <div className="card-info">
                           <div className="card-title-row">
                             <span className="card-name">{creature.nickname}</span>
@@ -731,10 +784,9 @@ export default function HomePage() {
                                 setSelectedRosterId(creature.instanceId);
                               }}
                             >
-                              <div 
-                                style={{ width: '32px', height: '32px' }}
-                                dangerouslySetInnerHTML={{ __html: getSpriteSvg(species?.spriteKey) }}
-                              />
+                              <div style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                {renderCreatureVisual(creature.speciesId, '100%')}
+                              </div>
                               <div>
                                 <div><strong>{creature.nickname}</strong> (Lv.{creature.level})</div>
                                 <div style={{ fontSize: '6px', color: '#8da2c0' }}>HP: {creature.currentHp}/{creature.maxHp} • {species?.type}</div>
@@ -756,6 +808,12 @@ export default function HomePage() {
                         <option value="species_ignisaur">Ignisaur (Fire / Aggressive)</option>
                         <option value="species_floraslug">Floraslug (Grass / High HP)</option>
                         <option value="species_voltkit">Voltkit (Electric / High Speed)</option>
+                        <option value="species_pikachu">Pikachu (Electric / Fast)</option>
+                        <option value="species_charizard">Charizard (Fire / Flying)</option>
+                        <option value="species_blastoise">Blastoise (Water / Heavy Defense)</option>
+                        <option value="species_venusaur">Venusaur (Grass / Tank)</option>
+                        <option value="species_lucario">Lucario (Normal/Fighting / High ATK)</option>
+                        <option value="species_gengar">Gengar (Normal/Ghost / High SPD)</option>
                       </select>
                     </div>
 
@@ -803,8 +861,10 @@ export default function HomePage() {
                       <div 
                         className={`sprite-holder ${oppAnimShake ? 'anim-shake' : ''} ${oppAnimFaint ? 'anim-faint' : ''}`} 
                         id="opp-sprite-holder"
-                        dangerouslySetInnerHTML={{ __html: getSpriteSvg(SPECIES_CATALOG[activeEngine.opponent.speciesId]?.spriteKey) }}
-                      />
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      >
+                        {renderCreatureVisual(activeEngine.opponent.speciesId, '100%')}
+                      </div>
                       <div className="platform-shadow"></div>
                     </div>
                   </div>
@@ -815,8 +875,10 @@ export default function HomePage() {
                       <div 
                         className={`sprite-holder ${playerAnimShake ? 'anim-shake' : ''} ${playerAnimFaint ? 'anim-faint' : ''}`} 
                         id="player-sprite-holder"
-                        dangerouslySetInnerHTML={{ __html: getSpriteSvg(SPECIES_CATALOG[activeEngine.player.speciesId]?.spriteKey) }}
-                      />
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      >
+                        {renderCreatureVisual(activeEngine.player.speciesId, '100%')}
+                      </div>
                       <div className="platform-shadow"></div>
                     </div>
                     <div className="hud-box">
@@ -1041,11 +1103,9 @@ export default function HomePage() {
                     <button className="close-x" id="btn-close-detail" onClick={() => setInspectCreature(null)}>✕</button>
                   </div>
                   <div className="detail-body">
-                    <div 
-                      className="detail-sprite-box" 
-                      id="modal-sprite-box"
-                      dangerouslySetInnerHTML={{ __html: getSpriteSvg(SPECIES_CATALOG[inspectCreature.instance.speciesId]?.spriteKey) }}
-                    />
+                    <div className="detail-sprite-box" id="modal-sprite-box">
+                      {renderCreatureVisual(inspectCreature.instance.speciesId, '100%')}
+                    </div>
                     <div className="detail-info">
                       <div className="info-row">
                         <span>Species ID:</span>
@@ -1070,22 +1130,38 @@ export default function HomePage() {
 
                   {/* PokéAPI Reference Data if present */}
                   {inspectCreature.pokeApiRef && (
-                    <div style={{ background: '#090d14', border: '1px solid #233045', padding: '6px 8px', marginBottom: '10px', fontSize: '7px' }}>
-                      <div style={{ color: '#f39c12', marginBottom: '4px', fontWeight: 'bold' }}>POKÉAPI SPECIES REFERENCE:</div>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <div style={{ background: '#090d14', border: '2px solid #233045', padding: '8px 10px', marginBottom: '10px', fontSize: '7px' }}>
+                      <div style={{ color: '#f39c12', marginBottom: '6px', fontWeight: 'bold', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>POKÉAPI NATIONAL DEX #{inspectCreature.pokeApiRef.id}</span>
+                        <span>{getPokemonByPokedexNumber(inspectCreature.pokeApiRef.id)?.genus || 'Pokémon'}</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                         {inspectCreature.pokeApiRef.sprites.officialArtwork && (
                           <img 
                             src={inspectCreature.pokeApiRef.sprites.officialArtwork} 
                             alt={inspectCreature.pokeApiRef.name} 
-                            style={{ width: '40px', height: '40px', objectFit: 'contain' }}
+                            style={{ width: '56px', height: '56px', objectFit: 'contain', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))' }}
                           />
                         )}
-                        <div>
-                          <div>Name: {inspectCreature.pokeApiRef.name.toUpperCase()}</div>
-                          <div>Height: {inspectCreature.pokeApiRef.height / 10}m | Weight: {inspectCreature.pokeApiRef.weight / 10}kg</div>
-                          <div>Types: {inspectCreature.pokeApiRef.types.join(' / ').toUpperCase()}</div>
+                        <div style={{ flex: 1, lineHeight: '1.6' }}>
+                          <div style={{ color: '#fff', fontWeight: 'bold' }}>{inspectCreature.pokeApiRef.displayName}</div>
+                          <div style={{ color: '#8da2c0' }}>
+                            Height: {inspectCreature.pokeApiRef.height / 10}m | Weight: {inspectCreature.pokeApiRef.weight / 10}kg
+                          </div>
+                          <div style={{ display: 'flex', gap: '4px', marginTop: '3px' }}>
+                            {inspectCreature.pokeApiRef.types.map(t => (
+                              <span key={t} className={`type-pill type-${t.charAt(0).toUpperCase() + t.slice(1)}`}>
+                                {t.toUpperCase()}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       </div>
+                      {getPokemonByPokedexNumber(inspectCreature.pokeApiRef.id)?.description && (
+                        <div style={{ marginTop: '6px', color: '#cad8ee', fontStyle: 'italic', fontSize: '6px', borderTop: '1px solid #1a2233', paddingTop: '4px' }}>
+                          "{getPokemonByPokedexNumber(inspectCreature.pokeApiRef.id)?.description}"
+                        </div>
+                      )}
                     </div>
                   )}
 

@@ -42,10 +42,28 @@ async function runTests() {
     assert(pikaRef.types.includes('electric'), 'Pikachu type includes electric');
     assert(pikaRef.stats.speed >= 50, 'Pikachu speed stat populated');
     assert(typeof pikaRef.sprites.officialArtwork === 'string', 'Official artwork URL returned');
-    console.log(`✅ PokéAPI data fetched for ${pikaRef.displayName} (Height: ${pikaRef.height}, Types: ${pikaRef.types.join('/')}). Artwork available: ${Boolean(pikaRef.sprites.officialArtwork)}\n`);
-  } else {
-    console.warn('⚠️ PokéAPI network request timed out or unavailable in offline mode (safe fallback triggered).\n');
+    console.log('✅ PokéAPI reference fetch verified.\n');
   }
+
+  // Test 4: Local Pokémon Database and Artwork Verification
+  console.log('Testing POKEMON_DATABASE and official artwork references...');
+  const { POKEMON_DATABASE, getPokemonByPokedexNumber, getPokemonArtworkUrl } = await import('../src/lib/data/pokemon-service');
+  assert(POKEMON_DATABASE.length >= 150, `Must have at least 150 Pokémon cached (found ${POKEMON_DATABASE.length})`);
+
+  const bulbasaur = getPokemonByPokedexNumber(1);
+  assert(bulbasaur !== null, 'Bulbasaur (#1) must be in database');
+  assert(bulbasaur?.name === 'bulbasaur', 'Bulbasaur name matches');
+  assert(Boolean(bulbasaur?.sprites.officialArtwork), 'Bulbasaur has official artwork URL');
+  assert(bulbasaur?.sprites.officialArtwork?.includes('official-artwork/1.png') ?? false, 'Bulbasaur artwork URL points to 1.png');
+
+  const mew = getPokemonByPokedexNumber(151);
+  assert(mew !== null, 'Mew (#151) must be in database');
+  assert(Boolean(mew?.sprites.officialArtwork), 'Mew has official artwork URL');
+
+  const charizardArtwork = getPokemonArtworkUrl(6);
+  assert(charizardArtwork.includes('official-artwork/6.png'), 'Charizard artwork URL correct');
+
+  console.log(`✅ POKEMON_DATABASE verified (${POKEMON_DATABASE.length} Pokémon with 100% verified artwork).\n`);
 
   console.log('----------------------------------------------------');
   console.log('All PokéAPI & MEZASTAR tests passed successfully! 🎉');

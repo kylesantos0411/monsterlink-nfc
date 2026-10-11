@@ -20,6 +20,8 @@ export interface PokeApiReferenceData {
   };
 }
 
+import { getPokemonByName, getPokemonByPokedexNumber } from '../data/pokemon-service';
+
 // In-memory cache for fetched PokeAPI reference objects
 const pokeApiCache = new Map<string, PokeApiReferenceData>();
 
@@ -27,6 +29,38 @@ export async function fetchPokemonReference(pokemonNameOrId: string | number): P
   const query = String(pokemonNameOrId).toLowerCase().trim();
   if (pokeApiCache.has(query)) {
     return pokeApiCache.get(query)!;
+  }
+
+  // 1. Fast check in preloaded local database cache
+  const localRecord = typeof pokemonNameOrId === 'number' || !isNaN(Number(pokemonNameOrId))
+    ? getPokemonByPokedexNumber(Number(pokemonNameOrId))
+    : getPokemonByName(query);
+
+  if (localRecord) {
+    const fromLocal: PokeApiReferenceData = {
+      id: localRecord.pokedexNumber,
+      name: localRecord.name,
+      displayName: localRecord.displayName,
+      types: localRecord.types,
+      height: localRecord.height,
+      weight: localRecord.weight,
+      sprites: {
+        frontDefault: localRecord.sprites.frontDefault,
+        frontShiny: localRecord.sprites.frontShiny,
+        officialArtwork: localRecord.sprites.officialArtwork,
+      },
+      stats: {
+        hp: localRecord.baseStats.hp,
+        attack: localRecord.baseStats.attack,
+        defense: localRecord.baseStats.defense,
+        specialAttack: localRecord.baseStats.specialAttack,
+        specialDefense: localRecord.baseStats.specialDefense,
+        speed: localRecord.baseStats.speed,
+      },
+    };
+    pokeApiCache.set(query, fromLocal);
+    pokeApiCache.set(String(localRecord.pokedexNumber), fromLocal);
+    return fromLocal;
   }
 
   try {

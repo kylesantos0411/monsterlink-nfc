@@ -166,14 +166,50 @@ export const SPECIES_CATALOG: Record<string, CreatureSpecies> = {
     learnableMoveIds: ['vine_whip', 'spore_blast', 'tackle'],
     spriteKey: 'venusaur',
   },
+  species_lucario: {
+    id: 'species_lucario',
+    name: 'Lucario',
+    subtitle: 'Aura Pokémon',
+    type: 'Normal',
+    rarity: 'Rare',
+    baseStats: { hp: 70, attack: 110, defense: 70, speed: 90 },
+    learnableMoveIds: ['quick_strike', 'spark_claw', 'tackle'],
+    spriteKey: 'lucario',
+  },
+  species_gengar: {
+    id: 'species_gengar',
+    name: 'Gengar',
+    subtitle: 'Shadow Pokémon',
+    type: 'Normal',
+    rarity: 'Rare',
+    baseStats: { hp: 60, attack: 65, defense: 60, speed: 110 },
+    learnableMoveIds: ['thunder_jolt', 'spore_blast', 'tackle'],
+    spriteKey: 'gengar',
+  },
 };
 
 export const CARD_REGISTRY: Record<string, CardRegistryEntry> = {
-  // Prototype Original Tags
+  // Prototype Original Tags (Supports both aliases)
+  'ML-CARD-IGNI-01': {
+    cardCode: 'ML-CARD-IGNI-01',
+    speciesId: 'species_ignisaur',
+    name: 'Ignisaur Tag',
+    rarity: 'Common',
+    source: 'Physical NFC Tag Pack 1',
+    grade: '2-Star',
+  },
   'ML-CARD-FIRE-001': {
     cardCode: 'ML-CARD-FIRE-001',
     speciesId: 'species_ignisaur',
     name: 'Ignisaur Tag',
+    rarity: 'Common',
+    source: 'Physical NFC Tag Pack 1',
+    grade: '2-Star',
+  },
+  'ML-CARD-AQUA-02': {
+    cardCode: 'ML-CARD-AQUA-02',
+    speciesId: 'species_aquabite',
+    name: 'Aquabite Tag',
     rarity: 'Common',
     source: 'Physical NFC Tag Pack 1',
     grade: '2-Star',
@@ -186,6 +222,14 @@ export const CARD_REGISTRY: Record<string, CardRegistryEntry> = {
     source: 'Physical NFC Tag Pack 1',
     grade: '2-Star',
   },
+  'ML-CARD-FLOR-03': {
+    cardCode: 'ML-CARD-FLOR-03',
+    speciesId: 'species_floraslug',
+    name: 'Floraslug Tag',
+    rarity: 'Common',
+    source: 'Physical NFC Tag Pack 1',
+    grade: '2-Star',
+  },
   'ML-CARD-GRASS-003': {
     cardCode: 'ML-CARD-GRASS-003',
     speciesId: 'species_floraslug',
@@ -193,6 +237,14 @@ export const CARD_REGISTRY: Record<string, CardRegistryEntry> = {
     rarity: 'Common',
     source: 'Physical NFC Tag Pack 1',
     grade: '2-Star',
+  },
+  'ML-CARD-VOLT-04': {
+    cardCode: 'ML-CARD-VOLT-04',
+    speciesId: 'species_voltkit',
+    name: 'Voltkit Tag',
+    rarity: 'Uncommon',
+    source: 'Physical NFC Tag Pack 1',
+    grade: '3-Star',
   },
   'ML-CARD-ELEC-004': {
     cardCode: 'ML-CARD-ELEC-004',
@@ -203,7 +255,7 @@ export const CARD_REGISTRY: Record<string, CardRegistryEntry> = {
     grade: '3-Star',
   },
 
-  // Official Pokémon MEZASTAR NFC Tags
+  // Official Pokémon MEZASTAR NFC Tags (Canonical & Test codes)
   'ML-MEZASTAR-001': {
     cardCode: 'ML-MEZASTAR-001',
     speciesId: 'species_pikachu',
@@ -212,10 +264,26 @@ export const CARD_REGISTRY: Record<string, CardRegistryEntry> = {
     source: 'Pokémon MEZASTAR Set 1',
     grade: '5-Star',
   },
+  'MEZASTAR-01-001': {
+    cardCode: 'MEZASTAR-01-001',
+    speciesId: 'species_charizard',
+    name: 'Charizard (6★ Superstar)',
+    rarity: 'Legendary',
+    source: 'Pokémon MEZASTAR Superstar Set 1',
+    grade: '6-Star Superstar',
+  },
   'ML-MEZASTAR-002': {
     cardCode: 'ML-MEZASTAR-002',
     speciesId: 'species_charizard',
     name: 'Charizard (6★ Superstar)',
+    rarity: 'Legendary',
+    source: 'Pokémon MEZASTAR Superstar Set 1',
+    grade: '6-Star Superstar',
+  },
+  'MEZASTAR-01-003': {
+    cardCode: 'MEZASTAR-01-003',
+    speciesId: 'species_blastoise',
+    name: 'Blastoise (6★ Superstar)',
     rarity: 'Legendary',
     source: 'Pokémon MEZASTAR Superstar Set 1',
     grade: '6-Star Superstar',
@@ -235,6 +303,22 @@ export const CARD_REGISTRY: Record<string, CardRegistryEntry> = {
     rarity: 'Legendary',
     source: 'Pokémon MEZASTAR Superstar Set 1',
     grade: '6-Star Superstar',
+  },
+  'ML-MEZASTAR-005': {
+    cardCode: 'ML-MEZASTAR-005',
+    speciesId: 'species_lucario',
+    name: 'Lucario (5★ Mega Evolution)',
+    rarity: 'Rare',
+    source: 'Pokémon MEZASTAR Set 2',
+    grade: '5-Star',
+  },
+  'ML-MEZASTAR-006': {
+    cardCode: 'ML-MEZASTAR-006',
+    speciesId: 'species_gengar',
+    name: 'Gengar (4★ Star)',
+    rarity: 'Rare',
+    source: 'Pokémon MEZASTAR Set 2',
+    grade: '4-Star',
   },
 };
 

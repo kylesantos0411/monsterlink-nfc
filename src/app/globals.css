@@ -18,6 +18,19 @@
   --type-grass: #2ecc71;
   --type-electric: #f1c40f;
   --type-normal: #95a5a6;
+  --type-poison: #a040a0;
+  --type-bug: #a8b820;
+  --type-ground: #e0c068;
+  --type-rock: #b8a038;
+  --type-ghost: #705898;
+  --type-psychic: #f85888;
+  --type-ice: #98d8d8;
+  --type-dragon: #7038f8;
+  --type-dark: #705848;
+  --type-steel: #b8b8d0;
+  --type-flying: #a890f0;
+  --type-fairy: #ee99ac;
+  --type-fighting: #c03028;
 
   /* UI Accent Colors */
   --accent-gold: #f39c12;
@@ -697,6 +710,19 @@ body {
 .type-pill.type-Grass { background: var(--type-grass); }
 .type-pill.type-Electric { background: var(--type-electric); }
 .type-pill.type-Normal { background: var(--type-normal); }
+.type-pill.type-Poison { background: var(--type-poison); }
+.type-pill.type-Bug { background: var(--type-bug); }
+.type-pill.type-Ground { background: var(--type-ground); }
+.type-pill.type-Rock { background: var(--type-rock); }
+.type-pill.type-Ghost { background: var(--type-ghost); }
+.type-pill.type-Psychic { background: var(--type-psychic); }
+.type-pill.type-Ice { background: var(--type-ice); }
+.type-pill.type-Dragon { background: var(--type-dragon); }
+.type-pill.type-Dark { background: var(--type-dark); }
+.type-pill.type-Steel { background: var(--type-steel); }
+.type-pill.type-Flying { background: var(--type-flying); }
+.type-pill.type-Fairy { background: var(--type-fairy); }
+.type-pill.type-Fighting { background: var(--type-fighting); }
 
 .card-meta-nfc {
   font-size: 6px;
