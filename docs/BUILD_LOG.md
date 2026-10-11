@@ -339,3 +339,74 @@ Build a pure C# deterministic, turn-based battle engine for two creatures using 
 ### Next Recommended Task
 * Obtain user approval for Phase 3 completion.
 * Proceed to **Phase 4: Battle Records, History Persistence & Records Viewer UI**.
+
+---
+
+## Task 4: Phase 4 Battle Records Repository, Duplicate Prevention & History UI
+
+* **Date**: October 11, 2026
+* **Phase**: Phase 4
+* **Status**: Completed & Verified
+
+### Objective
+Implement Phase 4 battle records persistence, a battle history repository with duplicate write rejection, match outcome mapping (Victory, Defeat, Aborted), a decoupled history viewer presenter, detail inspection modal, and comprehensive automated test coverage for saving, reading, empty history, cold restart persistence, and duplicate write attempts.
+
+### Files Created or Modified
+* `Assets/Scripts/Records/BattleOutcome.cs` — Enum defining match results (`Victory`, `Defeat`, `Aborted`).
+* `Assets/Scripts/Records/CreatureCombatSummary.cs` — Value object recording instance metadata, start HP, end HP, and max HP.
+* `Assets/Scripts/Records/BattleRecord.cs` — Immutable match entity capturing GUID, timestamp, combatants, turn count, moves summary, outcome, and notes.
+* `Assets/Scripts/Records/BattleHistorySaveData.cs` — Serialization envelope with `schemaVersion: 1`, `lastModifiedUtc`, and list of records.
+* `Assets/Scripts/Records/JsonBattleRecordSerializer.cs` — Pure, portable JSON parser and serializer with no third-party dependencies.
+* `Assets/Scripts/Records/IBattleHistoryRepository.cs` — Repository contract for querying, appending, and persisting battle history.
+* `Assets/Scripts/Records/JsonBattleHistoryStorage.cs` — Storage engine with atomic `.tmp` writes and duplicate RecordId rejection.
+* `Assets/Scripts/Records/BattleRecordFactory.cs` — Factory translating live `BattleEngine` instances and start HP into immutable `BattleRecord` objects.
+* `Assets/Scripts/UI/IBattleHistoryView.cs` — Decoupled view contract for the battle history screen and empty-state handling.
+* `Assets/Scripts/UI/IBattleDetailView.cs` — Decoupled view contract for detailed match breakdown inspection.
+* `Assets/Scripts/UI/BattleHistoryPresenter.cs` — Presenter mediating between repository and history/detail views.
+* `Assets/Scripts/UI/MockHistoryViews.cs` — Test doubles (`MockBattleHistoryView`, `MockBattleDetailView`) for headless testing.
+* `Assets/Scripts/UI/BattleHistoryScreenUI.cs` — Unity `MonoBehaviour` Canvas adapter with conditional compilation.
+* `Assets/Scripts/Tests/Phase4Tests.cs` — Automated test harness covering TC-401 through TC-408.
+* `run-phase4-tests.ps1` & `run-phase4-tests.bat` — Standalone one-click Windows test runners.
+* `docs/PROJECT_PLAN.md` — Updated Phase 4 status to COMPLETED & VERIFIED; marked Milestone M4 as PASSED.
+* `docs/TEST_CHECKLIST.md` — Updated TC-401 through TC-408 to PASSED with actual results.
+* `docs/BUILD_LOG.md` — Recorded Task 4 execution log.
+
+### Implementation Summary
+1. **Immutable Match Records**: Created `BattleRecord` capturing full battle metadata (unique `RecordId`, UTC timestamp, combatant summaries with start/end/max HP, total turns, moves log summary, winner/loser names, outcome, and notes).
+2. **Atomic JSON Storage**: Implemented `JsonBattleHistoryStorage` with atomic file write safety (writes to `.tmp` file, deletes old file, moves temp file to destination) preventing corrupted state on sudden termination.
+3. **Duplicate Prevention**: Implemented in-memory and persistent duplicate write prevention in `JsonBattleHistoryStorage.Add(record)` ensuring the same `RecordId` cannot be recorded multiple times.
+4. **Aborted Match Handling**: Matches interrupted mid-combat or exited early are flagged with `BattleOutcome.Aborted` and have no declared winner; never recorded as victories.
+5. **Decoupled MVP UI**: Built `IBattleHistoryView` and `IBattleDetailView` and coordinated them with `BattleHistoryPresenter`. Handles empty state cleanly with zero-state UI messaging.
+
+### Tests Executed and Actual Results
+* **TC-401 (Save Completed Battle Record)**:
+  - *Result*: Saved match record with player ending HP 28 and opponent HP 0; confirmed retrieval by ID and accurate HP values.
+  - *Verdict*: **PASSED**
+* **TC-402 (Read History and Order Records)**:
+  - *Result*: Saved 3 records; confirmed `GetAll()` returned all 3 sorted chronologically (newest first).
+  - *Verdict*: **PASSED**
+* **TC-403 (Empty History Handling & Zero State)**:
+  - *Result*: Clean repository reported count 0; presenter updated mock view to show empty state flag and 0 total matches.
+  - *Verdict*: **PASSED**
+* **TC-404 (Duplicate Record Prevention)**:
+  - *Result*: Attempted adding identical RecordId twice and adding a different record with the same ID; both rejected with `false` return; count remained strictly 1.
+  - *Verdict*: **PASSED**
+* **TC-405 (Cold Restart Persistence Across Instances)**:
+  - *Result*: Saved 2 matches in session 1, closed repository, instantiated new repository on same file; both records reloaded with exact winners/outcomes and duplicate prevention remained active.
+  - *Verdict*: **PASSED**
+* **TC-406 (Battle History Presenter and Detail Selection)**:
+  - *Result*: Triggered record selection event in history view; presenter loaded record and opened detail modal with full HP transition and moves log.
+  - *Verdict*: **PASSED**
+* **TC-407 (BattleRecordFactory Combat Metrics Capture)**:
+  - *Result*: Ran live 5-turn combat between Ignisaur and Aquabite in `BattleEngine`; factory extracted exact HP deltas, turn count, moves summary, and winner.
+  - *Verdict*: **PASSED**
+* **TC-408 (Aborted Battle Handling)**:
+  - *Result*: Generated record from uncompleted engine session (1 turn); correctly recorded as `BattleOutcome.Aborted` with empty winner name and interruption note.
+  - *Verdict*: **PASSED**
+
+### Known Issues
+* None. All 8 Phase 4 tests passed. Regression suites (Phase 1: 7 tests, Phase 2: 7 tests, Phase 3: 9 tests) all passed cleanly with 0 regressions.
+
+### Next Recommended Task
+* Obtain user review for Phase 4 completion.
+* Proceed to **Phase 5: Native Android NFC Integration & Physical Hardware Testing**.

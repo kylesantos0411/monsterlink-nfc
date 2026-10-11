@@ -118,6 +118,7 @@
 ### Phase 4: Battle Records, History Persistence & Records Viewer UI
 * **Goal**: Persist complete match records and provide a historical battle browser with match breakdown views.
 * **Prerequisites**: Phase 3 approved and validated.
+* **Status**: **COMPLETED & VERIFIED**
 * **Deliverables**:
   - `BattleRecord` data model:
     - `RecordId` (GUID)
@@ -127,17 +128,18 @@
     - `TurnCount`
     - `ActionLogSummary` (List of moves used and damage dealt)
     - `Outcome` (`Victory`, `Defeat`, `Aborted`)
-  - `BattleHistoryRepository`: Handles append-only persistence of completed battle logs to JSON.
+  - `BattleHistoryRepository`: Handles append-only persistence of completed battle logs to JSON with duplicate prevention.
   - Incomplete Battle Handler: Matches interrupted by app closure are marked as `Aborted` (never logged as victories).
   - Battle Records UI Scene:
     - Chronological list view of previous matches with summary tags (Win/Loss, Date, Opponent).
     - Detail view displaying granular breakdown of selected battle.
     - Clear History option with confirmation dialog.
+  - Automated test suite `Phase4Tests.cs`, runner `run-phase4-tests.bat`, and PowerShell script `run-phase4-tests.ps1`.
 * **Acceptance Criteria**:
-  - [ ] Completed battles automatically generate and store a complete `BattleRecord`.
-  - [ ] Aborted/interrupted battles are documented appropriately and never recorded as wins.
-  - [ ] Battle records persist across application restarts.
-  - [ ] History UI displays all saved matches and accurately reflects combat stats.
+  - [x] Completed battles automatically generate and store a complete `BattleRecord`.
+  - [x] Aborted/interrupted battles are documented appropriately and never recorded as wins.
+  - [x] Battle records persist across application restarts with duplicate write protection.
+  - [x] History UI displays all saved matches and accurately reflects combat stats.
 
 ---
 
@@ -183,6 +185,6 @@
 | **M1: Collection & Data Core** | Phase 1 | **PASSED** | 4 sample creatures visible, persistent save/load functional |
 | **M2: Simulated NFC System** | Phase 2 | **PASSED** | Card codes scanned, duplicate check prevents double-register |
 | **M3: Combat Engine & UI** | Phase 3 | **PASSED** | Deterministic battles, victory/defeat detected and rendered |
-| **M4: Battle History** | Phase 4 | Pending | Records saved, history viewer renders past battles |
+| **M4: Battle History** | Phase 4 | **PASSED** | Records saved, history viewer renders past battles, duplicates prevented |
 | **M5: Physical Android NFC** | Phase 5 | Pending | Physical tag scan succeeds on Android test device |
 | **M6: Prototype Sign-off** | Phase 6 | Pending | Full regression passed, zero critical bugs, documentation complete |

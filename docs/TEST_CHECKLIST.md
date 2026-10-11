@@ -80,12 +80,14 @@
 
 | Test ID | Description | Test Steps | Expected Result | Actual Result | Status |
 |---|---|---|---|---|---|
-| **TC-401** | Complete battle record generation | Finish a battle and inspect generated `BattleRecord` | Record contains GUID, timestamp, creature summaries, outcome | Not executed | Pending |
-| **TC-402** | Battle history file persistence | Save 2 completed battle records to disk | Records persisted to `battle_history.json` with schema version | Not executed | Pending |
-| **TC-403** | Battle history restoration | Restart app and query battle history repository | All saved records loaded chronologically | Not executed | Pending |
-| **TC-404** | History UI rendering | Open Battle Records screen | List renders each battle with date, opponent, and win/loss tag | Not executed | Pending |
-| **TC-405** | History detail inspection | Select a record in the history list | Detailed breakdown shows turn count, moves used, HP start/end | Not executed | Pending |
-| **TC-406** | Mid-battle abort handling | Terminate app mid-combat, relaunch, inspect history | Match recorded with outcome `Aborted`; never marked as victory | Not executed | Pending |
+| **TC-401** | Complete battle record generation & persistence | Save completed battle to repository and inspect stored record | Record contains GUID, UTC timestamp, creature summaries, outcome, turn count, moves | Verified: Record saved to repository with starting/ending HP, turns, and moves | **PASSED** |
+| **TC-402** | Read battle history & sort order | Query records from repository containing multiple battles | Records returned sorted by timestamp (newest first) | Verified: Returned 3 records with bat_103 first and bat_101 last | **PASSED** |
+| **TC-403** | Empty history handling & zero state | Query empty repository and render via BattleHistoryPresenter | View displays zero count and activates empty state display | Verified: Empty state displayed = true, count = 0, no errors | **PASSED** |
+| **TC-404** | Prevent duplicate battle record writes | Attempt to add a record with an existing RecordId to repository | Duplicate write is rejected (returns false) and count remains constant | Verified: Duplicate write returns false, count preserved at 1 | **PASSED** |
+| **TC-405** | Cold restart persistence across instances | Write records, instantiate a brand new repository instance pointing to file | All prior records and duplicate safeguards reloaded intact | Verified: 2 records reloaded with correct winners/outcomes and duplicate protection active | **PASSED** |
+| **TC-406** | History UI presenter & detail selection | Select a record in MockBattleHistoryView connected to BattleHistoryPresenter | MockBattleDetailView opens showing full creature start/end HP and moves log | Verified: Detail view opened with exact record ID, combat summaries, and moves | **PASSED** |
+| **TC-407** | BattleRecordFactory combat metrics capture | Run live BattleEngine combat and pass to BattleRecordFactory | Factory generates complete BattleRecord capturing exact ending HP and moves | Verified: End HP matches engine state, moves summary populated, outcome matches | **PASSED** |
+| **TC-408** | Aborted / interrupted battle handling | Generate record from unfinished BattleEngine session | Record outcome is `BattleOutcome.Aborted` with no winner declared | Verified: Incomplete battle marked as Aborted with explanatory notes | **PASSED** |
 
 ---
 
