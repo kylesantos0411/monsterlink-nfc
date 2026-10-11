@@ -125,9 +125,51 @@ export const SPECIES_CATALOG: Record<string, CreatureSpecies> = {
     learnableMoveIds: ['spark_claw', 'quick_strike', 'thunder_jolt'],
     spriteKey: 'voltkit',
   },
+  // Official Pokémon Species (linked to PokéAPI reference IDs)
+  species_pikachu: {
+    id: 'species_pikachu',
+    name: 'Pikachu',
+    subtitle: 'Mouse Pokémon',
+    type: 'Electric',
+    rarity: 'Rare',
+    baseStats: { hp: 45, attack: 55, defense: 40, speed: 90 },
+    learnableMoveIds: ['spark_claw', 'quick_strike', 'thunder_jolt'],
+    spriteKey: 'pikachu',
+  },
+  species_charizard: {
+    id: 'species_charizard',
+    name: 'Charizard',
+    subtitle: 'Flame Pokémon',
+    type: 'Fire',
+    rarity: 'Legendary',
+    baseStats: { hp: 78, attack: 84, defense: 78, speed: 100 },
+    learnableMoveIds: ['flame_burst', 'fire_fang', 'tackle'],
+    spriteKey: 'charizard',
+  },
+  species_blastoise: {
+    id: 'species_blastoise',
+    name: 'Blastoise',
+    subtitle: 'Shellfish Pokémon',
+    type: 'Water',
+    rarity: 'Legendary',
+    baseStats: { hp: 79, attack: 83, defense: 100, speed: 78 },
+    learnableMoveIds: ['aqua_jet', 'bubble_beam', 'tackle'],
+    spriteKey: 'blastoise',
+  },
+  species_venusaur: {
+    id: 'species_venusaur',
+    name: 'Venusaur',
+    subtitle: 'Seed Pokémon',
+    type: 'Grass',
+    rarity: 'Legendary',
+    baseStats: { hp: 80, attack: 82, defense: 83, speed: 80 },
+    learnableMoveIds: ['vine_whip', 'spore_blast', 'tackle'],
+    spriteKey: 'venusaur',
+  },
 };
 
 export const CARD_REGISTRY: Record<string, CardRegistryEntry> = {
+  // Prototype Original Tags
   'ML-CARD-FIRE-001': {
     cardCode: 'ML-CARD-FIRE-001',
     speciesId: 'species_ignisaur',
@@ -159,6 +201,40 @@ export const CARD_REGISTRY: Record<string, CardRegistryEntry> = {
     rarity: 'Uncommon',
     source: 'Physical NFC Tag Pack 1',
     grade: '3-Star',
+  },
+
+  // Official Pokémon MEZASTAR NFC Tags
+  'ML-MEZASTAR-001': {
+    cardCode: 'ML-MEZASTAR-001',
+    speciesId: 'species_pikachu',
+    name: 'Pikachu (5★ Z-Move)',
+    rarity: 'Rare',
+    source: 'Pokémon MEZASTAR Set 1',
+    grade: '5-Star',
+  },
+  'ML-MEZASTAR-002': {
+    cardCode: 'ML-MEZASTAR-002',
+    speciesId: 'species_charizard',
+    name: 'Charizard (6★ Superstar)',
+    rarity: 'Legendary',
+    source: 'Pokémon MEZASTAR Superstar Set 1',
+    grade: '6-Star Superstar',
+  },
+  'ML-MEZASTAR-003': {
+    cardCode: 'ML-MEZASTAR-003',
+    speciesId: 'species_blastoise',
+    name: 'Blastoise (6★ Superstar)',
+    rarity: 'Legendary',
+    source: 'Pokémon MEZASTAR Superstar Set 1',
+    grade: '6-Star Superstar',
+  },
+  'ML-MEZASTAR-004': {
+    cardCode: 'ML-MEZASTAR-004',
+    speciesId: 'species_venusaur',
+    name: 'Venusaur (6★ Superstar)',
+    rarity: 'Legendary',
+    source: 'Pokémon MEZASTAR Superstar Set 1',
+    grade: '6-Star Superstar',
   },
 };
 

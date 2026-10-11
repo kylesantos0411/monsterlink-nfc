@@ -5,6 +5,8 @@ import { LocalStorageRepository } from '@/lib/storage/local-repository';
 import { CreatureInstance } from '@/types/creature';
 import { BattleRecord } from '@/types/records';
 import { CARD_REGISTRY, SPECIES_CATALOG, createCreatureInstance } from '@/lib/data/catalog';
+import { MEZASTAR_CATALOG, getMezastarTagByNfcCode } from '@/lib/data/mezastar-catalog';
+import { fetchPokemonReference, PokeApiReferenceData } from '@/lib/pokeapi/client';
 import { BattleEngine } from '@/lib/battle/battle-engine';
 import { createBattleRecord } from '@/lib/battle/record-factory';
 import { 
@@ -17,14 +19,18 @@ import {
   Swords, 
   CheckCircle2, 
   AlertTriangle,
-  RotateCcw
+  Info,
+  X
 } from 'lucide-react';
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState<'scan' | 'collection' | 'battle' | 'history'>('scan');
   const [collection, setCollection] = useState<CreatureInstance[]>([]);
   const [history, setHistory] = useState<BattleRecord[]>([]);
-  const [selectedCreature, setSelectedCreature] = useState<CreatureInstance | null>(null);
+  const [inspectCreature, setInspectCreature] = useState<{
+    instance: CreatureInstance;
+    pokeApiRef: PokeApiReferenceData | null;
+  } | null>(null);
   const [scanMessage, setScanMessage] = useState<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
 
   // Battle State
@@ -40,7 +46,7 @@ export default function HomePage() {
     setHistory(LocalStorageRepository.getBattleHistory());
   }
 
-  // NFC Scan Handler (Simulated & Web NFC ready)
+  // NFC Scan Handler (Supports both prototype & MEZASTAR tags)
   function handleScan(cardCode: string) {
     if (LocalStorageRepository.isCardRegistered(cardCode)) {
       setScanMessage({ text: `Rejected: Tag "${cardCode}" is already registered in your collection!`, type: 'error' });
@@ -49,18 +55,29 @@ export default function HomePage() {
 
     const card = CARD_REGISTRY[cardCode];
     if (!card) {
-      setScanMessage({ text: `Unknown: Tag "${cardCode}" is not in the prototype registry.`, type: 'error' });
+      setScanMessage({ text: `Unknown: Tag "${cardCode}" is not in the prototype or MEZASTAR registry.`, type: 'error' });
       return;
     }
 
-    const newMonster = createCreatureInstance(card.speciesId, cardCode, card.name.replace(' Tag', ''), 5);
+    const newMonster = createCreatureInstance(card.speciesId, cardCode, card.name.split(' (')[0].replace(' Tag', ''), 5);
     LocalStorageRepository.addCreature(newMonster);
     LocalStorageRepository.registerCard(cardCode, newMonster.instanceId);
     refreshData();
-    setScanMessage({ text: `Enrolled: ${newMonster.nickname} (Level ${newMonster.level}) registered!`, type: 'success' });
+    setScanMessage({ text: `Enrolled: ${newMonster.nickname} (Level ${newMonster.level} • ${card.grade || 'Common'}) registered!`, type: 'success' });
   }
 
-  // Start Battle
+  async function handleInspect(creature: CreatureInstance) {
+    let ref: PokeApiReferenceData | null = null;
+    const mezastar = creature.nfcCardCode ? getMezastarTagByNfcCode(creature.nfcCardCode) : null;
+    if (mezastar) {
+      ref = await fetchPokemonReference(mezastar.pokeApiId);
+    } else if (creature.speciesId.startsWith('species_')) {
+      const pokeName = creature.speciesId.replace('species_', '');
+      ref = await fetchPokemonReference(pokeName);
+    }
+    setInspectCreature({ instance: creature, pokeApiRef: ref });
+  }
+
   function startBattle(playerMonster: CreatureInstance) {
     const oppSpeciesKey = Object.keys(SPECIES_CATALOG).find(k => k !== playerMonster.speciesId) || 'species_aquabite';
     const opponent = createCreatureInstance(oppSpeciesKey, null, 'Rival ' + SPECIES_CATALOG[oppSpeciesKey].name, 5);
@@ -92,7 +109,7 @@ export default function HomePage() {
   }
 
   return (
-    <main className="max-w-md mx-auto w-full min-h-screen bg-[#0d131f] border-x border-[#1e293b] flex flex-col shadow-2xl">
+    <main className="max-w-md mx-auto w-full min-h-screen bg-[#0d131f] border-x border-[#1e293b] flex flex-col shadow-2xl relative">
       {/* Header */}
       <header className="p-4 border-b border-[#1e293b] flex items-center justify-between bg-[#111827]">
         <div className="flex items-center gap-2">
@@ -102,8 +119,8 @@ export default function HomePage() {
           <span className="font-bold text-lg tracking-wider text-rose-400">MONSTERLINK</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded-full font-mono font-semibold">
-            WEB V1.0
+          <span className="text-xs bg-amber-950 text-amber-400 border border-amber-800 px-2 py-0.5 rounded-full font-mono font-semibold">
+            MEZASTAR
           </span>
         </div>
       </header>
@@ -135,10 +152,11 @@ export default function HomePage() {
             </div>
 
             <div className="space-y-2">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Predefined Tag Codes</h3>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">MEZASTAR & Prototype Tags</h3>
               <div className="grid grid-cols-2 gap-2">
                 {Object.values(CARD_REGISTRY).map(card => {
                   const isRegistered = LocalStorageRepository.isCardRegistered(card.cardCode);
+                  const isMezastar = card.cardCode.includes('MEZASTAR');
                   return (
                     <button
                       key={card.cardCode}
@@ -146,13 +164,22 @@ export default function HomePage() {
                       className={`p-3 rounded-lg border text-left flex flex-col justify-between transition-all ${
                         isRegistered
                           ? 'bg-slate-900/60 border-slate-800 opacity-60'
-                          : 'bg-[#162033] border-[#293b5c] hover:border-rose-500 hover:bg-[#1a263d]'
+                          : isMezastar
+                          ? 'bg-[#182038] border-amber-500/40 hover:border-amber-400'
+                          : 'bg-[#162033] border-[#293b5c] hover:border-rose-500'
                       }`}
                     >
-                      <div className="text-xs font-mono text-rose-400 font-bold">{card.cardCode}</div>
-                      <div className="text-sm font-bold text-slate-200 mt-1">{card.name}</div>
+                      <div>
+                        <div className="flex justify-between items-center text-[10px] font-mono">
+                          <span className={isMezastar ? 'text-amber-400 font-bold' : 'text-rose-400'}>{card.cardCode}</span>
+                          {card.grade && (
+                            <span className="text-amber-300 font-bold bg-amber-950/70 px-1 rounded">{card.grade}</span>
+                          )}
+                        </div>
+                        <div className="text-sm font-bold text-slate-100 mt-1">{card.name}</div>
+                      </div>
                       <div className="text-[10px] text-slate-400 flex justify-between items-center mt-2">
-                        <span>{card.grade || card.rarity}</span>
+                        <span>{card.source}</span>
                         {isRegistered && <span className="text-emerald-400 font-semibold">Registered</span>}
                       </div>
                     </button>
@@ -182,6 +209,7 @@ export default function HomePage() {
               <div className="space-y-2">
                 {collection.map(creature => {
                   const species = SPECIES_CATALOG[creature.speciesId];
+                  const mezastar = creature.nfcCardCode ? getMezastarTagByNfcCode(creature.nfcCardCode) : null;
                   return (
                     <div
                       key={creature.instanceId}
@@ -192,21 +220,40 @@ export default function HomePage() {
                           {species?.name[0] || 'M'}
                         </div>
                         <div>
-                          <div className="text-sm font-bold text-slate-100">{creature.nickname}</div>
+                          <div className="text-sm font-bold text-slate-100 flex items-center gap-2">
+                            <span>{creature.nickname}</span>
+                            {mezastar && (
+                              <span className="text-[10px] px-1.5 py-0.2 bg-amber-950 text-amber-300 border border-amber-800 rounded font-mono">
+                                {mezastar.grade}
+                              </span>
+                            )}
+                          </div>
                           <div className="text-xs text-slate-400 flex gap-2">
                             <span>Lv. {creature.level}</span>
                             <span>•</span>
                             <span className="text-rose-400">{species?.type}</span>
+                            {mezastar?.specialAbility && (
+                              <span className="text-purple-400">• {mezastar.specialAbility}</span>
+                            )}
                           </div>
                         </div>
                       </div>
-                      <button
-                        onClick={() => startBattle(creature)}
-                        className="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow-md"
-                      >
-                        <Swords className="w-3.5 h-3.5" />
-                        Battle
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleInspect(creature)}
+                          className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs"
+                          title="Inspect Details"
+                        >
+                          <Info className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => startBattle(creature)}
+                          className="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow-md"
+                        >
+                          <Swords className="w-3.5 h-3.5" />
+                          Battle
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
@@ -345,6 +392,78 @@ export default function HomePage() {
           </div>
         )}
       </div>
+
+      {/* INSPECT DETAIL MODAL */}
+      {inspectCreature && (
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 p-4 flex flex-col justify-end">
+          <div className="bg-[#141d2e] border border-[#293b5c] rounded-2xl p-5 space-y-4 shadow-2xl animate-in slide-in-from-bottom">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="text-lg font-bold text-slate-100">{inspectCreature.instance.nickname}</h3>
+                <div className="text-xs text-slate-400 font-mono">
+                  {inspectCreature.instance.nfcCardCode || 'Prototype Digital Monster'}
+                </div>
+              </div>
+              <button
+                onClick={() => setInspectCreature(null)}
+                className="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* PokéAPI Reference Card */}
+            {inspectCreature.pokeApiRef && (
+              <div className="bg-[#0f172a] border border-[#1e293b] p-3 rounded-xl flex items-center gap-3">
+                {inspectCreature.pokeApiRef.sprites.officialArtwork && (
+                  <img
+                    src={inspectCreature.pokeApiRef.sprites.officialArtwork}
+                    alt={inspectCreature.pokeApiRef.name}
+                    className="w-16 h-16 object-contain"
+                  />
+                )}
+                <div className="text-xs space-y-0.5">
+                  <div className="font-bold text-amber-400">PokéAPI Reference Data</div>
+                  <div className="text-slate-300">Official Height: {inspectCreature.pokeApiRef.height / 10} m</div>
+                  <div className="text-slate-300">Official Weight: {inspectCreature.pokeApiRef.weight / 10} kg</div>
+                  <div className="text-slate-400">Types: {inspectCreature.pokeApiRef.types.join(', ')}</div>
+                </div>
+              </div>
+            )}
+
+            {/* In-Game Combat Stats */}
+            <div className="grid grid-cols-4 gap-2 text-center">
+              <div className="bg-slate-900/60 p-2 rounded-lg border border-slate-800">
+                <div className="text-[10px] text-slate-400">HP</div>
+                <div className="text-sm font-bold text-rose-400">{inspectCreature.instance.maxHp}</div>
+              </div>
+              <div className="bg-slate-900/60 p-2 rounded-lg border border-slate-800">
+                <div className="text-[10px] text-slate-400">ATK</div>
+                <div className="text-sm font-bold text-amber-400">{inspectCreature.instance.attack}</div>
+              </div>
+              <div className="bg-slate-900/60 p-2 rounded-lg border border-slate-800">
+                <div className="text-[10px] text-slate-400">DEF</div>
+                <div className="text-sm font-bold text-blue-400">{inspectCreature.instance.defense}</div>
+              </div>
+              <div className="bg-slate-900/60 p-2 rounded-lg border border-slate-800">
+                <div className="text-[10px] text-slate-400">SPD</div>
+                <div className="text-sm font-bold text-emerald-400">{inspectCreature.instance.speed}</div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                const c = inspectCreature.instance;
+                setInspectCreature(null);
+                startBattle(c);
+              }}
+              className="w-full py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold uppercase tracking-wider"
+            >
+              Enter Battle With {inspectCreature.instance.nickname}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Bottom Navigation */}
       <nav className="p-2 border-t border-[#1e293b] bg-[#111827] grid grid-cols-4 gap-1">

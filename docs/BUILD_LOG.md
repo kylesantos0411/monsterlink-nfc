@@ -460,3 +460,39 @@ Establish the modern web architecture stack requested by the user (**Next.js, Ty
 * **Phase W2: PokéAPI Reference & MEZASTAR Tag Data Integration**:
   - Connect PokéAPI for general Pokémon reference information (stats, sprites, moves).
   - Model official Pokémon MEZASTAR tag attributes (star grades, energy ratings, tag IDs).
+
+---
+
+## Task 6: Phase W2 PokéAPI Integration & Official Pokémon MEZASTAR Catalog
+
+* **Date**: October 11, 2026
+* **Phase**: Phase W2 (PokéAPI Reference & MEZASTAR Integration)
+* **Status**: Completed & Verified
+
+### Objective
+Integrate official Pokémon reference data via PokéAPI and the official Pokémon MEZASTAR catalogue as a reference for tag information. Support both prototype original cards and authentic Pokémon MEZASTAR tag attributes (Star Grades, Energy Ratings, Z-Move / Dynamax indicators, and official artwork).
+
+### Files Created or Modified
+* `src/lib/pokeapi/client.ts` — Client utility fetching Pokémon reference data from `https://pokeapi.co/api/v2/pokemon/{name_or_id}` with in-memory caching and resilient fallback.
+* `src/lib/data/mezastar-catalog.ts` — Catalog modeling official Pokémon MEZASTAR tag specifications (Pikachu 5★ Z-Move, Charizard 6★ Superstar Dynamax, Blastoise 6★ Superstar, Venusaur 6★ Superstar, Lucario 5★ Mega Evolution, Gengar 4★).
+* `src/lib/data/catalog.ts` — Extended `SPECIES_CATALOG` with official Pokémon species (Pikachu, Charizard, Blastoise, Venusaur) and updated `CARD_REGISTRY` with MEZASTAR NFC tag codes.
+* `src/app/page.tsx` — Added MEZASTAR tag badge, star grade filters, and interactive PokéAPI inspection modal displaying official Pokémon artwork, official height/weight/types, and in-game combat stats.
+* `tests/pokeapi.test.ts` — Automated test suite verifying MEZASTAR catalog structure, card registry mapping, and live PokéAPI data fetching.
+* `docs/BUILD_LOG.md` — Appended Task 6 execution log.
+
+### Tests Executed and Actual Results
+* **PokéAPI & MEZASTAR Automated Tests (`npx tsx tests/pokeapi.test.ts`)**:
+  - *MEZASTAR Catalog Integrity*: Verified Pikachu 5★ Z-Move (Energy 120) and Charizard 6★ Superstar Dynamax (Energy 172). -> **PASSED**
+  - *Card Registry Mapping*: Confirmed all MEZASTAR codes correctly resolve in registry. -> **PASSED**
+  - *Live PokéAPI Fetch*: Successfully fetched Pikachu reference data (#25) with types, stats, and official artwork URL. -> **PASSED**
+* **Next.js Production Build (`npm run build`)**:
+  - *Result*: Production build completed successfully in <2s with 0 errors. -> **PASSED**
+
+### Known Issues
+* Physical Web NFC reading requires testing on a supported Android device over HTTPS.
+
+### Next Recommended Task
+* **Phase W3: Web NFC API (`NDEFReader`) Integration with Fallback Simulator**:
+  - Create `useNfcScanner` hook using the browser's native `window.NDEFReader` when available.
+  - Implement real-time physical NFC tag reading on Android Chrome.
+  - Maintain simulated scan buttons for desktop and iOS browsers.
