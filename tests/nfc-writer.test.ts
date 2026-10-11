@@ -113,6 +113,21 @@ async function runNfcWriterTests() {
   assert(typeof support.recommendation === 'string', 'recommendation is string');
   console.log('✅ Hardware detection schema verified.\n');
 
+  // Test 6: Write & Verify Sequence
+  console.log('Test 6: Write & Verify Sequence & Step Tracking...');
+  const { simulateWriteAndVerify } = await import('../src/lib/nfc/ntag215-service');
+  let progressCalled = false;
+  const verifyRes = simulateWriteAndVerify('ML-0025', (steps) => {
+    progressCalled = true;
+    assert(Array.isArray(steps), 'Steps must be an array');
+    assert.strictEqual(steps.length, 4, 'Must have 4 verification steps');
+  });
+  assert.strictEqual(verifyRes.verified, true, 'Result verified must be true');
+  assert.strictEqual(verifyRes.cardCode, 'ML-0025', 'Card code verified matches');
+  assert(progressCalled, 'Progress callback was triggered');
+  assert.strictEqual(verifyRes.steps[3].status, 'success', 'Final verification step must succeed');
+  console.log('✅ Write & verify sequence tests passed.\n');
+
   console.log('----------------------------------------------------');
   console.log('All NTAG215 Direct NFC tests passed successfully! 🎉');
   console.log('----------------------------------------------------');

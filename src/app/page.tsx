@@ -13,9 +13,9 @@ import { useWebNfc } from '@/lib/nfc/use-web-nfc';
 import { PIXEL_SPRITES } from '@/lib/data/pixel-sprites';
 import { getPokemonArtworkUrl, getPokemonByName, getPokemonByPokedexNumber, searchPokemon, POKEMON_DATABASE } from '@/lib/data/pokemon-service';
 import { Sound } from '@/lib/sound/sound-controller';
-import { formatCardIdentifier, resolveCardToPokemonData } from '@/lib/nfc/ntag215-service';
+import { formatCardIdentifier, resolveCardToPokemonData, writeAndVerifyNtag215Card, simulateWriteAndVerify } from '@/lib/nfc/ntag215-service';
 import { PokemonSpeciesRecord } from '@/types/pokemon';
-import { ResolvedCardData } from '@/types/nfc';
+import { ResolvedCardData, NfcVerificationStep } from '@/types/nfc';
 
 interface ScanLogEntry {
   id: string;
@@ -26,7 +26,7 @@ interface ScanLogEntry {
 }
 
 export default function HomePage() {
-  // Navigation View: view-menu, view-scan, view-collection, view-battle, view-history, view-settings
+  // Navigation View: view-menu, view-scan, view-collection, view-battle, view-history, view-settings, view-monsterlist
   const [currentView, setCurrentView] = useState<string>('view-menu');
   
   // Desktop simulator options
@@ -52,6 +52,15 @@ export default function HomePage() {
 
   // NFC Lab Sub-tab: 'read' | 'write' | 'guide'
   const [nfcLabTab, setNfcLabTab] = useState<'read' | 'write' | 'guide'>('read');
+
+  // Monster List (All Pokémon Database) View State
+  const [monsterListSearch, setMonsterListSearch] = useState<string>('');
+  const [monsterListTypeFilter, setMonsterListTypeFilter] = useState<string>('ALL');
+  const [selectedMonsterForModal, setSelectedMonsterForModal] = useState<PokemonSpeciesRecord | null>(null);
+  const [modalVerificationSteps, setModalVerificationSteps] = useState<NfcVerificationStep[] | null>(null);
+  const [modalIsWriting, setModalIsWriting] = useState<boolean>(false);
+  const [modalWriteResult, setModalWriteResult] = useState<{ success: boolean; message: string; isSimulated: boolean } | null>(null);
+  const [modalAllowOverwrite, setModalAllowOverwrite] = useState<boolean>(true);
 
   // NFC Writer State
   const [writeSearchQuery, setWriteSearchQuery] = useState<string>('');
@@ -283,6 +292,116 @@ export default function HomePage() {
 
     Sound.playScanSuccess();
     showToast(`[SIMULATED] Card [${code}] programmed!`, 'info');
+  }
+
+  // Monster List (Database) Modal Handlers
+  function openMonsterModal(pkmn: PokemonSpeciesRecord) {
+    Sound.playClick();
+    setSelectedMonsterForModal(pkmn);
+    setModalVerificationSteps(null);
+    setModalWriteResult(null);
+  }
+
+  function closeMonsterModal() {
+    Sound.playClick();
+    setSelectedMonsterForModal(null);
+    setModalVerificationSteps(null);
+    setModalWriteResult(null);
+  }
+
+  async function handleModalWriteAndVerify(pkmn: PokemonSpeciesRecord) {
+    const code = formatCardIdentifier(pkmn.pokedexNumber);
+    setModalIsWriting(true);
+    setModalWriteResult(null);
+
+    // Initial steps state
+    const initialSteps: NfcVerificationStep[] = [
+      { step: 'format', status: 'active', label: 'NDEF Text Record Encoding', detail: `Preparing ${code}...` },
+      { step: 'write', status: 'pending', label: 'Physical NTAG215 Sector Write' },
+      { step: 'readback', status: 'pending', label: 'Hardware Read-back Acknowledgment' },
+      { step: 'verify', status: 'pending', label: 'Identifier Verification & Integrity Check' },
+    ];
+    setModalVerificationSteps(initialSteps);
+
+    if (isNfcSupported) {
+      try {
+        Sound.playClick();
+        const res = await writeAndVerifyNtag215Card(code, {
+          overwrite: modalAllowOverwrite,
+          onProgress: (steps) => setModalVerificationSteps([...steps]),
+        });
+
+        // Ensure registered in catalog
+        resolveCardRegistryEntry(code);
+
+        // Add to recent programmed list
+        const now = new Date().toLocaleTimeString();
+        setRecentProgrammedCards(prev => [
+          {
+            code,
+            name: pkmn.displayName,
+            dexNumber: pkmn.pokedexNumber,
+            time: now,
+            isSimulated: false,
+          },
+          ...prev.filter(c => c.code !== code),
+        ]);
+
+        setModalWriteResult({
+          success: true,
+          message: res.message,
+          isSimulated: false,
+        });
+        Sound.playScanSuccess();
+        showToast(`Verified! [${code}] written to physical NTAG215 tag.`, 'success');
+      } catch (err: any) {
+        Sound.playError();
+        setModalWriteResult({
+          success: false,
+          message: err.message || 'Write and verify failed.',
+          isSimulated: false,
+        });
+        showToast(`Failed: ${err.message}`, 'error');
+      } finally {
+        setModalIsWriting(false);
+      }
+    } else {
+      // Simulation mode
+      try {
+        Sound.playClick();
+        const res = simulateWriteAndVerify(code, (steps) => setModalVerificationSteps([...steps]));
+        resolveCardRegistryEntry(code);
+
+        const now = new Date().toLocaleTimeString();
+        setRecentProgrammedCards(prev => [
+          {
+            code,
+            name: pkmn.displayName,
+            dexNumber: pkmn.pokedexNumber,
+            time: now,
+            isSimulated: true,
+          },
+          ...prev.filter(c => c.code !== code),
+        ]);
+
+        setModalWriteResult({
+          success: true,
+          message: res.message,
+          isSimulated: true,
+        });
+        Sound.playScanSuccess();
+        showToast(`[SIMULATED] Verified: [${code}] written to virtual NTAG215.`, 'info');
+      } catch (err: any) {
+        Sound.playError();
+        setModalWriteResult({
+          success: false,
+          message: err.message,
+          isSimulated: true,
+        });
+      } finally {
+        setModalIsWriting(false);
+      }
+    }
   }
 
   // NFC Card Scan Logic
@@ -662,6 +781,12 @@ export default function HomePage() {
                   <span className="btn-label">NFC LAB & PROGRAMMER</span>
                   <span className="btn-sub">Read & Write NTAG215 Tags</span>
                 </button>
+                <button className="pixel-btn" style={{ borderColor: '#38bdf8' }} onClick={() => navigateTo('view-monsterlist')}>
+                  <span className="btn-icon">📖</span>
+                  <span className="btn-label">MONSTER LIST (ALL POKÉMON)</span>
+                  <span className="btn-sub">152 Database Grid & Quick Write</span>
+                  <span className="btn-badge">{POKEMON_DATABASE.length}</span>
+                </button>
                 <button className="pixel-btn" onClick={() => navigateTo('view-collection')}>
                   <span className="btn-icon">📦</span>
                   <span className="btn-label">MY COLLECTION</span>
@@ -710,10 +835,16 @@ export default function HomePage() {
                     ✍️ WRITE NTAG215
                   </button>
                   <button 
+                    className="nfc-tab-btn"
+                    onClick={() => { Sound.playClick(); navigateTo('view-monsterlist'); }}
+                  >
+                    📖 152 LIST
+                  </button>
+                  <button 
                     className={`nfc-tab-btn ${nfcLabTab === 'guide' ? 'active' : ''}`}
                     onClick={() => { Sound.playClick(); setNfcLabTab('guide'); }}
                   >
-                    ℹ️ SETUP GUIDE
+                    ℹ️ GUIDE
                   </button>
                 </div>
 
@@ -1527,6 +1658,99 @@ export default function HomePage() {
               </div>
             </section>
 
+            {/* ==================================================== */}
+            {/* VIEW 6: MONSTER LIST (DATABASE GRID MATCHING ART)    */}
+            {/* ==================================================== */}
+            <section id="view-monsterlist" className={`view ${currentView === 'view-monsterlist' ? 'active' : ''}`}>
+              <div className="monster-list-container">
+                {/* Topbar matching attached image */}
+                <div className="monster-list-topbar">
+                  <div className="ml-topbar-left">
+                    <span className="pokeball-icon">🔴</span>
+                    <span>MONSTER LINK</span>
+                    <span style={{ color: '#64748b' }}>/</span>
+                    <span style={{ color: '#ffffff' }}>MONSTER LIST</span>
+                    <span style={{ color: '#64748b' }}>/</span>
+                    <span style={{ color: '#94a3b8' }}>PROTOTYPE 0.5</span>
+                  </div>
+                  <div className="ml-topbar-right">
+                    <button className="back-btn" onClick={() => navigateTo('view-menu')} style={{ padding: '2px 8px' }}>
+                      ◀ MENU
+                    </button>
+                  </div>
+                </div>
+
+                {/* Filter & Search Bar */}
+                <div className="monster-list-controls">
+                  <input
+                    type="text"
+                    className="monster-search-input"
+                    placeholder="Search 152 Pokémon by name, #dex, or type..."
+                    value={monsterListSearch}
+                    onChange={(e) => setMonsterListSearch(e.target.value)}
+                  />
+                  <div className="monster-type-filter-row">
+                    {['ALL', 'FIRE', 'WATER', 'GRASS', 'ELECTRIC', 'POISON', 'GHOST', 'ROCK', 'ICE', 'FLYING', 'FAIRY', 'STEEL', 'GROUND', 'DARK', 'DRAGON', 'PSYCHIC', 'NORMAL'].map(t => (
+                      <button
+                        key={t}
+                        className={`monster-filter-pill ${monsterListTypeFilter === t ? 'active' : ''}`}
+                        onClick={() => { Sound.playClick(); setMonsterListTypeFilter(t); }}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Monster Grid matching uploaded screenshot */}
+                <div className="monster-grid-scroll">
+                  {POKEMON_DATABASE
+                    .filter(p => {
+                      if (monsterListTypeFilter !== 'ALL') {
+                        if (!p.types.map(t => t.toUpperCase()).includes(monsterListTypeFilter)) return false;
+                      }
+                      if (!monsterListSearch.trim()) return true;
+                      const q = monsterListSearch.trim().toLowerCase();
+                      const num = parseInt(q.replace('#', ''), 10);
+                      if (!isNaN(num) && p.pokedexNumber === num) return true;
+                      return p.name.toLowerCase().includes(q) || p.displayName.toLowerCase().includes(q) || p.types.some(t => t.toLowerCase().includes(q));
+                    })
+                    .map(p => {
+                      const primaryType = (p.types[0] || 'normal').toLowerCase();
+                      const primaryTypeCap = primaryType.charAt(0).toUpperCase() + primaryType.slice(1);
+                      return (
+                        <div
+                          key={p.pokedexNumber}
+                          className="monster-grid-card"
+                          onClick={() => openMonsterModal(p)}
+                          title={`Click to view ${p.displayName} & write to NFC`}
+                        >
+                          <div className="mg-header">
+                            {String(p.pokedexNumber).padStart(3, '0')} {p.displayName.toUpperCase().slice(0, 8)}
+                          </div>
+                          <div className="mg-sprite-box">
+                            <img
+                              src={p.sprites.frontDefault || getPokemonArtworkUrl(p.pokedexNumber)}
+                              alt={p.name}
+                              loading="lazy"
+                            />
+                          </div>
+                          <div className={`mg-type-pill type-pill type-${primaryTypeCap}`}>
+                            {primaryType.toUpperCase()}
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+
+                {/* Footer Bar matching attached image */}
+                <div className="monster-list-bottombar">
+                  <span>MONSTER LINK // {POKEMON_DATABASE.length} CREATURES</span>
+                  <span>VERSION 0.5 // TAP CARD TO WRITE NFC</span>
+                </div>
+              </div>
+            </section>
+
             {/* ========================================== */}
             {/* CREATURE DETAILS MODAL (COLLECTION)       */}
             {/* ========================================== */}
@@ -1656,6 +1880,161 @@ export default function HomePage() {
                           </div>
                         );
                       })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ==================================================== */}
+            {/* POKÉMON DETAIL & NFC WRITER VERIFIER MODAL           */}
+            {/* ==================================================== */}
+            {selectedMonsterForModal && (
+              <div className="pkmn-detail-modal-overlay" onClick={closeMonsterModal}>
+                <div className="pkmn-detail-modal" onClick={(e) => e.stopPropagation()}>
+                  <div className="pkmn-modal-header">
+                    <span className="pkmn-modal-title">
+                      #{String(selectedMonsterForModal.pokedexNumber).padStart(3, '0')} {selectedMonsterForModal.displayName.toUpperCase()}
+                    </span>
+                    <button className="pkmn-modal-close-btn" onClick={closeMonsterModal}>✕</button>
+                  </div>
+
+                  <div className="pkmn-modal-body">
+                    {/* Hero Display */}
+                    <div className="pkmn-modal-hero">
+                      <div className="pkmn-modal-artwork-box">
+                        <img 
+                          src={getPokemonArtworkUrl(selectedMonsterForModal.pokedexNumber)} 
+                          alt={selectedMonsterForModal.name} 
+                        />
+                      </div>
+                      <div className="pkmn-modal-hero-info">
+                        <div className="pm-name">
+                          {selectedMonsterForModal.displayName}
+                        </div>
+                        <div className="pm-genus">
+                          {selectedMonsterForModal.genus || 'Species Tag'}
+                        </div>
+                        <div className="pm-types">
+                          {selectedMonsterForModal.types.map(t => (
+                            <span key={t} className={`type-pill type-${t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()}`}>
+                              {t.toUpperCase()}
+                            </span>
+                          ))}
+                        </div>
+                        <div className="pm-meta-text">
+                          Height: {(selectedMonsterForModal.height / 10).toFixed(1)}m • Weight: {(selectedMonsterForModal.weight / 10).toFixed(1)}kg
+                        </div>
+                        {selectedMonsterForModal.description && (
+                          <div className="pm-meta-text" style={{ fontStyle: 'italic', marginTop: '4px' }}>
+                            &ldquo;{selectedMonsterForModal.description.replace(/\n|\f/g, ' ')}&rdquo;
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Base Stats Bars */}
+                    <div className="pkmn-stats-grid">
+                      <div style={{ fontSize: '7px', color: '#f6e05e', marginBottom: '2px', fontWeight: 'bold' }}>
+                        BASE COMBAT STATS:
+                      </div>
+                      {[
+                        { label: 'HP', val: selectedMonsterForModal.baseStats.hp, color: '#22c55e' },
+                        { label: 'ATTACK', val: selectedMonsterForModal.baseStats.attack, color: '#ef4444' },
+                        { label: 'DEFENSE', val: selectedMonsterForModal.baseStats.defense, color: '#f59e0b' },
+                        { label: 'SP. ATK', val: selectedMonsterForModal.baseStats.specialAttack, color: '#38bdf8' },
+                        { label: 'SP. DEF', val: selectedMonsterForModal.baseStats.specialDefense, color: '#a855f7' },
+                        { label: 'SPEED', val: selectedMonsterForModal.baseStats.speed, color: '#ec4899' },
+                      ].map(s => (
+                        <div key={s.label} className="stat-row">
+                          <span className="stat-label">{s.label}:</span>
+                          <span className="stat-value">{s.val}</span>
+                          <div className="stat-track">
+                            <div className="stat-fill" style={{ width: `${Math.min(100, (s.val / 160) * 100)}%`, background: s.color }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* NFC Writer & Verifier Section */}
+                    <div className="pkmn-nfc-writer-panel">
+                      <div className="nfc-panel-header">
+                        <span>NFC PROGRAMMER &amp; VERIFIER</span>
+                        <span className="nfc-code-badge">
+                          CARD ID: {formatCardIdentifier(selectedMonsterForModal.pokedexNumber)}
+                        </span>
+                      </div>
+
+                      <div className="overwrite-toggle-box">
+                        <input
+                          type="checkbox"
+                          id="chk-modal-overwrite"
+                          checked={modalAllowOverwrite}
+                          onChange={(e) => setModalAllowOverwrite(e.target.checked)}
+                        />
+                        <label htmlFor="chk-modal-overwrite">
+                          Allow overwriting existing NTAG215 tag
+                        </label>
+                      </div>
+
+                      {/* Verification Checklist */}
+                      {modalVerificationSteps && (
+                        <div className="nfc-verify-checklist">
+                          <div style={{ fontSize: '6.5px', color: '#94a3b8', fontWeight: 'bold', marginBottom: '2px' }}>
+                            VERIFICATION SEQUENCE:
+                          </div>
+                          {modalVerificationSteps.map((st, idx) => (
+                            <div key={st.step} className={`verify-step-item ${st.status}`}>
+                              <span>
+                                {st.status === 'success' ? '✅' : st.status === 'active' ? '⏳' : st.status === 'error' ? '❌' : '○'}
+                              </span>
+                              <span>
+                                <strong>Step {idx + 1}:</strong> {st.label}
+                                {st.detail ? ` (${st.detail})` : ''}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Write Result Feedback */}
+                      {modalWriteResult && (
+                        <div className={`write-feedback-banner ${modalWriteResult.success ? 'success' : 'error'}`}>
+                          <strong>{modalWriteResult.success ? '✅ WRITE VERIFIED' : '❌ WRITE FAILED'}: </strong>
+                          {modalWriteResult.message}
+                        </div>
+                      )}
+
+                      {/* Action Buttons */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {isNfcSupported ? (
+                          <button
+                            type="button"
+                            className={`btn-write-and-verify ${modalIsWriting ? 'active' : ''}`}
+                            onClick={() => handleModalWriteAndVerify(selectedMonsterForModal)}
+                            disabled={modalIsWriting}
+                          >
+                            <span>
+                              {modalIsWriting 
+                                ? '⏳ HOLD NTAG215 TAG TO PHONE ANTENNA...' 
+                                : `📡 WRITE & VERIFY NFC (NTAG215)`}
+                            </span>
+                          </button>
+                        ) : (
+                          <div style={{ fontSize: '6.5px', color: '#f59e0b', background: '#1c1505', padding: '6px', border: '1px solid #78350f' }}>
+                            ⚠️ Physical NFC requires Android Chrome over HTTPS. You can test the write &amp; verify sequence with Desktop Simulation below!
+                          </div>
+                        )}
+
+                        <button
+                          type="button"
+                          className="btn-write-simulated"
+                          onClick={() => handleModalWriteAndVerify(selectedMonsterForModal)}
+                          disabled={modalIsWriting}
+                        >
+                          <span>🧪 SIMULATE WRITE &amp; VERIFY (DESKTOP)</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

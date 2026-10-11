@@ -53,3 +53,21 @@ export interface ResolvedCardData {
   isAlreadyRegistered: boolean;
 }
 
+export interface NfcVerificationStep {
+  step: 'format' | 'write' | 'readback' | 'verify';
+  status: 'pending' | 'active' | 'success' | 'error';
+  label: string;
+  detail?: string;
+}
+
+export interface NfcWriteAndVerifyResult {
+  success: boolean;
+  verified: boolean;
+  cardCode: string;
+  readBackCode?: string;
+  steps: NfcVerificationStep[];
+  message: string;
+  isSimulated?: boolean;
+}
+
+
