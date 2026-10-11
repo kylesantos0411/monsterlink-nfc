@@ -9,6 +9,7 @@ import { MEZASTAR_CATALOG, getMezastarTagByNfcCode } from '@/lib/data/mezastar-c
 import { fetchPokemonReference, PokeApiReferenceData } from '@/lib/pokeapi/client';
 import { BattleEngine } from '@/lib/battle/battle-engine';
 import { createBattleRecord } from '@/lib/battle/record-factory';
+import { useWebNfc } from '@/lib/nfc/use-web-nfc';
 import { 
   Radio, 
   Gamepad2, 
@@ -20,7 +21,9 @@ import {
   CheckCircle2, 
   AlertTriangle,
   Info,
-  X
+  X,
+  Play,
+  Square
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -32,6 +35,19 @@ export default function HomePage() {
     pokeApiRef: PokeApiReferenceData | null;
   } | null>(null);
   const [scanMessage, setScanMessage] = useState<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+  // Web NFC Hook
+  const {
+    isSupported: isNfcSupported,
+    isScanning: isNfcScanning,
+    statusMessage: nfcStatus,
+    errorMessage: nfcError,
+    startScanning: startNfcScan,
+    stopScanning: stopNfcScan,
+  } = useWebNfc({
+    onTagRead: (tagCode) => handleScan(tagCode),
+    onError: (err) => setScanMessage({ text: `NFC Error: ${err.message}`, type: 'error' }),
+  });
 
   // Battle State
   const [activeEngine, setActiveEngine] = useState<BattleEngine | null>(null);
@@ -142,13 +158,50 @@ export default function HomePage() {
         {activeTab === 'scan' && (
           <div className="space-y-4">
             <div className="bg-[#141d2e] border border-[#24334f] rounded-xl p-5 text-center space-y-3">
-              <div className="w-16 h-16 mx-auto rounded-full bg-rose-500/10 border-2 border-rose-500/30 flex items-center justify-center text-rose-400 animate-pulse">
+              <div className={`w-16 h-16 mx-auto rounded-full border-2 flex items-center justify-center transition-all ${
+                isNfcScanning
+                  ? 'bg-rose-500/20 border-rose-500 text-rose-400 animate-pulse'
+                  : 'bg-slate-800/50 border-slate-700 text-slate-400'
+              }`}>
                 <Radio className="w-8 h-8" />
               </div>
-              <h2 className="text-base font-bold text-slate-100">NFC Tag Scanner</h2>
-              <p className="text-xs text-slate-400">
-                Tap physical MEZASTAR/MonsterLink NFC tags or simulate scans below to register creatures into your collection.
-              </p>
+
+              <div>
+                <h2 className="text-base font-bold text-slate-100">NFC Tag Scanner</h2>
+                <p className="text-xs text-slate-400 mt-1">
+                  {nfcStatus}
+                </p>
+                {nfcError && (
+                  <p className="text-xs text-rose-400 mt-1 font-semibold">{nfcError}</p>
+                )}
+              </div>
+
+              {/* Physical Web NFC Activation Controls */}
+              {isNfcSupported ? (
+                <div className="pt-2">
+                  {!isNfcScanning ? (
+                    <button
+                      onClick={startNfcScan}
+                      className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all"
+                    >
+                      <Play className="w-4 h-4 fill-white" />
+                      Start Physical NFC Reading
+                    </button>
+                  ) : (
+                    <button
+                      onClick={stopNfcScan}
+                      className="w-full py-2.5 px-4 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all"
+                    >
+                      <Square className="w-4 h-4 fill-white" />
+                      Stop NFC Reading
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="p-2 bg-slate-900/60 border border-slate-800 rounded-lg text-[11px] text-slate-400">
+                  <span>Physical Web NFC is not available on this browser. Use simulated card taps below.</span>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">

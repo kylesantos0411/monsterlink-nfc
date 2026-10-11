@@ -496,3 +496,34 @@ Integrate official Pokémon reference data via PokéAPI and the official Pokémo
   - Create `useNfcScanner` hook using the browser's native `window.NDEFReader` when available.
   - Implement real-time physical NFC tag reading on Android Chrome.
   - Maintain simulated scan buttons for desktop and iOS browsers.
+
+---
+
+## Task 7: Phase W3 Web NFC API (`window.NDEFReader`) Integration & Fallback Simulator
+
+* **Date**: October 11, 2026
+* **Phase**: Phase W3 (Web NFC Integration)
+* **Status**: Completed & Verified
+
+### Objective
+Integrate the browser Web NFC API (`window.NDEFReader`) allowing physical NFC cards and MEZASTAR tags to be tapped directly on supported mobile browsers (Chrome for Android over HTTPS), while providing an active fallback simulator for unsupported environments (desktop, iOS).
+
+### Files Created or Modified
+* `src/lib/nfc/use-web-nfc.ts` — React hook implementing browser detection for `window.NDEFReader`, hardware permission prompts, lifecycle management via `AbortController`, tag UID (`serialNumber`) and NDEF text record parsing, and continuous reading state.
+* `src/app/page.tsx` — Integrated `useWebNfc` into the UI. Added physical reading activation controls ("Start Physical NFC Reading" / "Stop NFC Reading"), live status indicators, error banners, and automatic tag registration dispatch.
+* `tests/nfc.test.ts` — Automated test verifying Web NFC tag dispatch and raw UID parsing against the card registry.
+* `docs/BUILD_LOG.md` — Appended Task 7 execution log.
+
+### Tests Executed and Actual Results
+* **Web NFC Dispatch Automated Test (`npx tsx tests/nfc.test.ts`)**:
+  - *Physical UID Dispatch*: Verified `ML-MEZASTAR-001` matches Pikachu species ID. -> **PASSED**
+  - *Unknown Tag Rejection*: Verified unmapped physical UID rejected with clear status. -> **PASSED**
+* **Next.js Production Build (`npm run build`)**:
+  - *Result*: Production build completed successfully with zero compilation or TypeScript errors. -> **PASSED**
+
+### Known Issues
+* Testing physical tag interaction requires deploying the web application to an HTTPS host (such as Vercel) and tapping cards on an Android device running Chrome.
+
+### Next Recommended Task
+* **Phase W4: Supabase / Database Schema & Cloud Persistence (Optional)** or **Vercel Deployment Readiness**:
+  - Prepare `vercel.json` and deployment guidelines so you can immediately test physical NFC card tapping on your phone.
