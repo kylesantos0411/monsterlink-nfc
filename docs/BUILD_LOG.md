@@ -126,3 +126,75 @@ Provide a fully functional, zero-dependency mobile-first web prototype of Monste
 * User tests the prototype in their browser using `start-web-prototype.bat` or opening `web-prototype/standalone.html`.
 * Gather user feedback on UI layout, retro art style, and battle pacing.
 * Proceed to Phase 1 Unity implementation with validated specifications.
+
+---
+
+## Task 1: Phase 1 Creature Models, Sample Roster, Persistence & Collection UI
+
+* **Date**: October 11, 2026
+* **Phase**: Phase 1
+* **Status**: Completed & Verified
+
+### Objective
+Implement Phase 1 creature species and creature instance data models, author the 4 original sample creature definitions and moves catalog, build a local file-based JSON persistence service with atomic writes and schema versioning, construct decoupled collection and creature details view interfaces and presenter, and establish automated unit tests verifying loading, saving, selecting creatures, and cold-boot app reopening.
+
+### Files Created or Modified
+* `Assets/Scripts/Core/ElementType.cs` — Core enum (`Normal`, `Fire`, `Water`, `Grass`, `Electric`).
+* `Assets/Scripts/Core/RarityTier.cs` — Core enum (`Common`, `Uncommon`, `Rare`, `Legendary`).
+* `Assets/Scripts/Core/CreatureStats.cs` — Serializable base stat block (`BaseHp`, `Attack`, `Defense`, `Speed`).
+* `Assets/Scripts/Core/MoveDefinition.cs` — Move model (`MoveId`, `Name`, `Type`, `Power`, `Accuracy`, `Description`).
+* `Assets/Scripts/Core/CreatureSpecies.cs` — Immutable species blueprint separating catalog definitions from player instances.
+* `Assets/Scripts/Core/CreatureInstance.cs` — Player-owned creature entity with unique instance GUID, HP/stat mutations, and NFC card assignment.
+* `Assets/Scripts/Data/CreatureCatalog.cs` — Static registry providing 4 original sample species (Ignisaur, Aquabite, Floraslug, Voltkit) and 10 combat moves.
+* `Assets/Scripts/Data/CreatureFactory.cs` — Factory for minting unique `CreatureInstance` entities with level-scaled stats and GUIDs.
+* `Assets/Scripts/Persistence/ICollectionRepository.cs` — Abstract contract for creature storage operations.
+* `Assets/Scripts/Persistence/CollectionSaveData.cs` — Serializable envelope with `schemaVersion: 1`, timestamps, and creature list.
+* `Assets/Scripts/Persistence/JsonSerializerHelper.cs` — Pure, portable JSON parser and formatter without external NuGet dependencies.
+* `Assets/Scripts/Persistence/JsonCollectionStorage.cs` — File-based repository implementing atomic `.tmp` writes, flush, and schema migration safety.
+* `Assets/Scripts/UI/ICollectionView.cs` — View contract for creature collection listing and empty-state handling.
+* `Assets/Scripts/UI/ICreatureDetailView.cs` — View contract for creature details inspect modal.
+* `Assets/Scripts/UI/CollectionPresenter.cs` — Presenter coordinating collection repository with views and metadata binding.
+* `Assets/Scripts/UI/MockViews.cs` — Test doubles for headless test automation.
+* `Assets/Scripts/UI/CollectionScreenUI.cs` — Unity `MonoBehaviour` canvas adapter with conditional compilation.
+* `Assets/Scripts/Tests/Phase1Tests.cs` — Automated test harness covering TC-101 through TC-107.
+* `run-phase1-tests.bat` — Standalone one-click Windows test runner.
+* `docs/PROJECT_PLAN.md` — Marked Phase 1 acceptance criteria and Milestone M1 as PASSED.
+* `docs/BUILD_LOG.md` — Appended Task 1 execution log.
+* `docs/TEST_CHECKLIST.md` — Updated TC-101 to TC-107 from Pending to PASSED.
+
+### Implementation Summary
+1. **Domain Model Separation**: Strictly segregated immutable `CreatureSpecies` definitions from mutable player-owned `CreatureInstance` objects. Multiple cards or catches of the same species receive isolated GUIDs and independent stats.
+2. **Original Test Roster**: Implemented 4 original sample species (Ignisaur - Fire, Aquabite - Water, Floraslug - Grass, Voltkit - Electric) and 10 balanced moves across 5 elements.
+3. **Local JSON Persistence**: Built `JsonCollectionStorage` with atomic file write safety (writes to `.tmp` file, flushes, then replaces target file) to prevent data loss on crashes.
+4. **Decoupled MVP UI Architecture**: Abstracted UI views behind `ICollectionView` and `ICreatureDetailView`, coordinated by `CollectionPresenter`. Handled empty collection gracefully.
+5. **No NFC or Battles**: Strictly deferred NFC scanning and battle engine implementation to subsequent phases.
+
+### Tests Executed and Actual Results
+* **TC-101 (Species Catalog & Attribute Integrity)**:
+  - *Result*: Verified all 4 species and 10 moves exist with positive stats and valid move linkages.
+  - *Verdict*: **PASSED**
+* **TC-102 (Instance Uniqueness & Factory Scaling)**:
+  - *Result*: Created multiple instances of Ignisaur; confirmed distinct GUIDs and isolated HP mutation.
+  - *Verdict*: **PASSED**
+* **TC-103 (Local JSON File Serialization)**:
+  - *Result*: Serialized collection to disk; confirmed valid JSON formatting and `schemaVersion: 1`.
+  - *Verdict*: **PASSED**
+* **TC-104 (Local JSON Deserialization & Data Recovery)**:
+  - *Result*: Cleared in-memory cache and reloaded from disk; confirmed 100% attribute fidelity.
+  - *Verdict*: **PASSED**
+* **TC-105 (App Reopen Simulation / Cold Boot Round-Trip)**:
+  - *Result*: Disposed initial repository session and launched fresh instance pointing to saved file; verified automatic recovery of all entities without loss.
+  - *Verdict*: **PASSED**
+* **TC-106 (Collection Selection & Detail View Binding)**:
+  - *Result*: Simulated creature selection event via presenter; verified `ICreatureDetailView.ShowCreatureDetails` received accurate instance stats, species metadata, and move pool.
+  - *Verdict*: **PASSED**
+* **TC-107 (Empty Collection State Handling)**:
+  - *Result*: Initialized presenter with empty repository; verified empty state flagged without exceptions.
+  - *Verdict*: **PASSED**
+
+### Known Issues
+* None. All 7 Phase 1 test cases compiled and passed with 0 failures.
+
+### Next Recommended Task
+* Obtain user approval for Phase 1 completion.
+* Proceed to **Phase 2: NFC Abstraction, Simulated Scanning & Card Registration**.

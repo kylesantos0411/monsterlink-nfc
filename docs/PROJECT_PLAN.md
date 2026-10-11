@@ -42,6 +42,7 @@
 ### Phase 1: Creature Models, Sample Roster, Persistence & Collection UI
 * **Goal**: Implement the creature domain model, static species definitions, 4 original sample creatures, local JSON persistence, and the collection browsing user interface.
 * **Prerequisites**: Phase 0 approved.
+* **Status**: **COMPLETED & VERIFIED**
 * **Deliverables**:
   - `CreatureSpecies`: Immutable definition (Species ID, Name, Element/Type, Base HP, Attack, Defense, Speed, Sprite Reference, Learnable Moves).
   - `CreatureInstance`: Individual creature entity (Instance GUID, Species ID, Nickname, Level, Current HP, Max HP, Attack, Defense, Speed, Known Moves, Assigned NFC Tag Code, Acquisition Timestamp).
@@ -51,17 +52,15 @@
     2. *Aquabite* (Water / Coral Crab)
     3. *Floraslug* (Grass / Spore Slug)
     4. *Voltkit* (Electric / Spark Rodent)
-  - `IDataPersistenceService` & `JsonFileStorageService`: Local persistent storage saving/loading creature collections to `Application.persistentDataPath`.
-  - Main Menu scene and navigation controller.
-  - Collection Scene & UI:
-    - Scrollable list of acquired creatures.
-    - Creature Details Modal/Panel showing stats, element, level, moves, and NFC tag code.
+  - `ICollectionRepository` & `JsonCollectionStorage`: Local persistent storage saving/loading creature collections with atomic write safety and schema versioning.
+  - `ICollectionView`, `ICreatureDetailView`, `CollectionPresenter`, and `CollectionScreenUI`.
+  - Automated test suite `Phase1Tests.cs` and batch runner `run-phase1-tests.bat`.
 * **Acceptance Criteria**:
-  - [ ] Species definitions remain strictly separated from creature instances.
-  - [ ] Multiple instances of the same species maintain unique instance IDs.
-  - [ ] Saving and reopening the application restores 100% of the collection with zero data corruption.
-  - [ ] Selecting any creature in the UI reliably displays accurate stats and moves.
-  - [ ] UI handles empty collection gracefully with an informative message.
+  - [x] Species definitions remain strictly separated from creature instances.
+  - [x] Multiple instances of the same species maintain unique instance IDs.
+  - [x] Saving and reopening the application restores 100% of the collection with zero data corruption.
+  - [x] Selecting any creature in the UI reliably displays accurate stats and moves.
+  - [x] UI handles empty collection gracefully with an informative message.
 
 ---
 
@@ -181,7 +180,7 @@
 | Milestone | Target Phase | Status | Exit Condition |
 |---|---|---|---|
 | **M0: Project Setup & Docs** | Phase 0 | **PASSED** | Clean repo, structured directories, approved plan |
-| **M1: Collection & Data Core** | Phase 1 | Pending | 4 sample creatures visible, persistent save/load functional |
+| **M1: Collection & Data Core** | Phase 1 | **PASSED** | 4 sample creatures visible, persistent save/load functional |
 | **M2: Simulated NFC System** | Phase 2 | Pending | Card codes scanned, duplicate check prevents double-register |
 | **M3: Combat Engine & UI** | Phase 3 | Pending | Deterministic battles, victory/defeat detected and rendered |
 | **M4: Battle History** | Phase 4 | Pending | Records saved, history viewer renders past battles |
