@@ -1,49 +1,66 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { NfcHardwareSupport, NfcWriteResult, NfcWriteOptions } from '@/types/nfc';
+import { checkNfcSupport, parseNdefTag, writeNtag215Card } from './ntag215-service';
 
 export interface UseWebNfcOptions {
-  onTagRead: (serialOrPayload: string) => void;
+  onTagRead?: (serialOrPayload: string) => void;
   onError?: (error: Error) => void;
 }
 
 export interface UseWebNfcResult {
   isSupported: boolean;
   isScanning: boolean;
+  isWriting: boolean;
+  hardwareSupport: NfcHardwareSupport;
   statusMessage: string;
   errorMessage: string | null;
   startScanning: () => Promise<void>;
   stopScanning: () => void;
+  writeCard: (cardCode: string, options?: NfcWriteOptions) => Promise<NfcWriteResult>;
+  cancelWrite: () => void;
 }
 
-export function useWebNfc({ onTagRead, onError }: UseWebNfcOptions): UseWebNfcResult {
-  const [isSupported, setIsSupported] = useState<boolean>(false);
+export function useWebNfc({ onTagRead, onError }: UseWebNfcOptions = {}): UseWebNfcResult {
+  const [hardwareSupport, setHardwareSupport] = useState<NfcHardwareSupport>({
+    hasWebNfc: false,
+    isSecureContext: false,
+    isAndroid: false,
+    isSupported: false,
+    recommendation: 'Detecting NFC...',
+  });
   const [isScanning, setIsScanning] = useState<boolean>(false);
+  const [isWriting, setIsWriting] = useState<boolean>(false);
   const [statusMessage, setStatusMessage] = useState<string>('Checking NFC availability...');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const scanAbortRef = useRef<AbortController | null>(null);
+  const writeAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    // Check if window.NDEFReader exists in the browser environment
-    if (typeof window !== 'undefined' && 'NDEFReader' in window) {
-      setIsSupported(true);
-      setStatusMessage('Web NFC is supported on this device. Tap "Start NFC Scan" to begin.');
+    const support = checkNfcSupport();
+    setHardwareSupport(support);
+
+    if (support.isSupported) {
+      setStatusMessage('Web NFC ready. Hold an NTAG215 tag to scan or program.');
     } else {
-      setIsSupported(false);
-      setStatusMessage('Web NFC is not supported in this browser. Use simulated card taps below.');
+      setStatusMessage(support.recommendation);
     }
 
     return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
+      if (scanAbortRef.current) {
+        scanAbortRef.current.abort();
+      }
+      if (writeAbortRef.current) {
+        writeAbortRef.current.abort();
       }
     };
   }, []);
 
   const startScanning = useCallback(async () => {
-    if (!isSupported) {
-      setErrorMessage('Web NFC is not supported by your browser or platform.');
+    if (!hardwareSupport.isSupported) {
+      setErrorMessage(hardwareSupport.recommendation);
       return;
     }
 
@@ -54,38 +71,20 @@ export function useWebNfc({ onTagRead, onError }: UseWebNfcOptions): UseWebNfcRe
       const NDEFReaderClass = (window as any).NDEFReader;
       const ndef = new NDEFReaderClass();
       const abortController = new AbortController();
-      abortControllerRef.current = abortController;
+      scanAbortRef.current = abortController;
 
       await ndef.scan({ signal: abortController.signal });
 
       setIsScanning(true);
-      setStatusMessage('NFC active! Hold a physical NFC tag or MEZASTAR tag near the back of your phone...');
+      setStatusMessage('NFC Active! Hold your NTAG215 tag near the back of your phone...');
 
       ndef.addEventListener('reading', (event: any) => {
-        let tagCode = '';
-
-        // 1. Try reading tag serial number (UID)
-        if (event.serialNumber) {
-          tagCode = event.serialNumber.trim().toUpperCase();
-        }
-
-        // 2. Try parsing NDEF text records if available
-        if (event.message && Array.isArray(event.message.records)) {
-          for (const record of event.message.records) {
-            if (record.recordType === 'text') {
-              const textDecoder = new TextDecoder(record.encoding || 'utf-8');
-              const textPayload = textDecoder.decode(record.data).trim();
-              if (textPayload) {
-                tagCode = textPayload;
-                break;
-              }
-            }
-          }
-        }
-
-        if (tagCode) {
-          setStatusMessage(`Read tag: ${tagCode}`);
-          onTagRead(tagCode);
+        const parsed = parseNdefTag(event.message, event.serialNumber);
+        if (parsed.cardCode) {
+          setStatusMessage(`Read tag: ${parsed.cardCode}`);
+          if (onTagRead) onTagRead(parsed.cardCode);
+        } else {
+          setErrorMessage('Empty tag detected. No MONSTERLINK identifier found on tag.');
         }
       });
 
@@ -102,23 +101,92 @@ export function useWebNfc({ onTagRead, onError }: UseWebNfcOptions): UseWebNfcRe
       setStatusMessage('Scan interrupted.');
       if (onError) onError(err);
     }
-  }, [isSupported, onTagRead, onError]);
+  }, [hardwareSupport.isSupported, hardwareSupport.recommendation, onTagRead, onError]);
 
   const stopScanning = useCallback(() => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
+    if (scanAbortRef.current) {
+      scanAbortRef.current.abort();
+      scanAbortRef.current = null;
     }
     setIsScanning(false);
     setStatusMessage('NFC scan paused.');
   }, []);
 
+  const writeCard = useCallback(
+    async (cardCode: string, options?: NfcWriteOptions): Promise<NfcWriteResult> => {
+      const code = cardCode.trim().toUpperCase();
+      if (!code) {
+        throw new Error('Please select or specify a card code before writing.');
+      }
+
+      if (!hardwareSupport.isSupported) {
+        throw new Error(`Cannot write physical tag: ${hardwareSupport.recommendation}`);
+      }
+
+      // If already scanning, temporarily pause scan to allow write
+      const wasScanning = isScanning;
+      if (wasScanning) {
+        stopScanning();
+      }
+
+      setIsWriting(true);
+      setErrorMessage(null);
+      setStatusMessage(`Ready to write [${code}]. TAP NTAG215 TAG TO PHONE NOW...`);
+
+      const abortController = new AbortController();
+      writeAbortRef.current = abortController;
+
+      try {
+        const result = await writeNtag215Card(code, {
+          ...options,
+          signal: abortController.signal,
+        });
+
+        setIsWriting(false);
+        setStatusMessage(`Successfully wrote [${code}] to physical NTAG215 tag!`);
+        writeAbortRef.current = null;
+
+        // Resume scan if was scanning before
+        if (wasScanning) {
+          startScanning();
+        }
+
+        return result;
+      } catch (err: any) {
+        setIsWriting(false);
+        writeAbortRef.current = null;
+        setErrorMessage(err.message || 'Failed to write to NFC tag.');
+        setStatusMessage('Write operation failed.');
+
+        if (wasScanning) {
+          startScanning();
+        }
+
+        throw err;
+      }
+    },
+    [hardwareSupport.isSupported, hardwareSupport.recommendation, isScanning, startScanning, stopScanning]
+  );
+
+  const cancelWrite = useCallback(() => {
+    if (writeAbortRef.current) {
+      writeAbortRef.current.abort();
+      writeAbortRef.current = null;
+    }
+    setIsWriting(false);
+    setStatusMessage('NFC write cancelled.');
+  }, []);
+
   return {
-    isSupported,
+    isSupported: hardwareSupport.isSupported,
     isScanning,
+    isWriting,
+    hardwareSupport,
     statusMessage,
     errorMessage,
     startScanning,
     stopScanning,
+    writeCard,
+    cancelWrite,
   };
 }

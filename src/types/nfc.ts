@@ -22,3 +22,34 @@ export interface RegisteredCardMap {
     registeredAt: string;
   };
 }
+
+export interface NfcHardwareSupport {
+  hasWebNfc: boolean;
+  isSecureContext: boolean;
+  isAndroid: boolean;
+  isSupported: boolean;
+  recommendation: string;
+}
+
+export interface NfcWriteOptions {
+  overwrite?: boolean;
+  signal?: AbortSignal;
+}
+
+export interface NfcWriteResult {
+  success: boolean;
+  cardCode: string;
+  message: string;
+  isSimulated?: boolean;
+}
+
+export interface ResolvedCardData {
+  cardEntry: CardRegistryEntry;
+  speciesName: string;
+  pokedexNumber?: number;
+  types: string[];
+  artworkUrl?: string;
+  spriteUrl?: string | null;
+  isAlreadyRegistered: boolean;
+}
+

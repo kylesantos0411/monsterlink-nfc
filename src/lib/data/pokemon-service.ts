@@ -77,3 +77,20 @@ export function queryPokemonCatalog(page = 1, pageSize = 20, typeFilter?: string
     totalPages: Math.ceil(total / pageSize),
   };
 }
+
+/**
+ * Searches Pokémon by name, display name, or Pokédex number
+ */
+export function searchPokemon(query: string, limit = 30): PokemonSpeciesRecord[] {
+  if (!query || !query.trim()) {
+    return POKEMON_DATABASE.slice(0, limit);
+  }
+  const q = query.trim().toLowerCase();
+  const num = parseInt(q.replace('#', ''), 10);
+
+  return POKEMON_DATABASE.filter(p => {
+    if (!isNaN(num) && p.pokedexNumber === num) return true;
+    return p.name.toLowerCase().includes(q) || p.displayName.toLowerCase().includes(q) || p.types.some(t => t.toLowerCase().includes(q));
+  }).slice(0, limit);
+}
+

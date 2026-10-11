@@ -4,15 +4,18 @@ import React, { useState, useEffect, useRef } from 'react';
 import { HybridStorage } from '@/lib/storage/hybrid-storage';
 import { CreatureInstance } from '@/types/creature';
 import { BattleRecord } from '@/types/records';
-import { CARD_REGISTRY, SPECIES_CATALOG, MOVES_CATALOG as MOVES, createCreatureInstance } from '@/lib/data/catalog';
+import { CARD_REGISTRY, SPECIES_CATALOG, MOVES_CATALOG as MOVES, createCreatureInstance, resolveCardRegistryEntry } from '@/lib/data/catalog';
 import { MEZASTAR_CATALOG, getMezastarTagByNfcCode } from '@/lib/data/mezastar-catalog';
 import { fetchPokemonReference, PokeApiReferenceData } from '@/lib/pokeapi/client';
 import { BattleEngine } from '@/lib/battle/battle-engine';
 import { createBattleRecord } from '@/lib/battle/record-factory';
 import { useWebNfc } from '@/lib/nfc/use-web-nfc';
 import { PIXEL_SPRITES } from '@/lib/data/pixel-sprites';
-import { getPokemonArtworkUrl, getPokemonByName, getPokemonByPokedexNumber } from '@/lib/data/pokemon-service';
+import { getPokemonArtworkUrl, getPokemonByName, getPokemonByPokedexNumber, searchPokemon, POKEMON_DATABASE } from '@/lib/data/pokemon-service';
 import { Sound } from '@/lib/sound/sound-controller';
+import { formatCardIdentifier, resolveCardToPokemonData } from '@/lib/nfc/ntag215-service';
+import { PokemonSpeciesRecord } from '@/types/pokemon';
+import { ResolvedCardData } from '@/types/nfc';
 
 interface ScanLogEntry {
   id: string;
@@ -47,6 +50,38 @@ export default function HomePage() {
   const [antennaStatusText, setAntennaStatusText] = useState<string>('Ready for NFC Card Tap');
   const [scanSessionLogs, setScanSessionLogs] = useState<ScanLogEntry[]>([]);
 
+  // NFC Lab Sub-tab: 'read' | 'write' | 'guide'
+  const [nfcLabTab, setNfcLabTab] = useState<'read' | 'write' | 'guide'>('read');
+
+  // NFC Writer State
+  const [writeSearchQuery, setWriteSearchQuery] = useState<string>('');
+  const [selectedPokemonForWrite, setSelectedPokemonForWrite] = useState<PokemonSpeciesRecord>(() => {
+    return getPokemonByPokedexNumber(25) || POKEMON_DATABASE[0];
+  });
+  const [customWriteCode, setCustomWriteCode] = useState<string>('ML-0025');
+  const [allowOverwrite, setAllowOverwrite] = useState<boolean>(true);
+  const [writeFeedback, setWriteFeedback] = useState<{
+    type: 'success' | 'error';
+    message: string;
+    code: string;
+    isSimulated?: boolean;
+  } | null>(null);
+
+  // Programmed Tags in session (available in both physical history and simulation test rack)
+  const [recentProgrammedCards, setRecentProgrammedCards] = useState<Array<{
+    code: string;
+    name: string;
+    dexNumber: number;
+    time: string;
+    isSimulated: boolean;
+  }>>([
+    { code: 'ML-0025', name: 'Pikachu', dexNumber: 25, time: 'Preset', isSimulated: true },
+    { code: 'ML-0006', name: 'Charizard', dexNumber: 6, time: 'Preset', isSimulated: true },
+  ]);
+
+  // Last read / scanned card data
+  const [lastScannedCardData, setLastScannedCardData] = useState<ResolvedCardData | null>(null);
+
   // Collection modal state
   const [inspectCreature, setInspectCreature] = useState<{
     instance: CreatureInstance;
@@ -78,9 +113,13 @@ export default function HomePage() {
   const {
     isSupported: isNfcSupported,
     isScanning: isNfcScanning,
+    isWriting: isNfcWriting,
+    hardwareSupport: nfcHardware,
     statusMessage: nfcStatus,
     startScanning: startNfcScan,
     stopScanning: stopNfcScan,
+    writeCard: writeNfcCard,
+    cancelWrite: cancelNfcWrite,
   } = useWebNfc({
     onTagRead: (tagCode) => handleScanCard(tagCode),
     onError: (err) => showToast(`NFC Error: ${err.message}`, 'error'),
@@ -149,9 +188,106 @@ export default function HomePage() {
     showToast('Demo creatures (Ignisaur & Aquabite) added!', 'success');
   }
 
+  // Select Pokémon for writing
+  function handleSelectPokemonForWrite(pkmn: PokemonSpeciesRecord) {
+    setSelectedPokemonForWrite(pkmn);
+    const autoCode = formatCardIdentifier(pkmn.pokedexNumber);
+    setCustomWriteCode(autoCode);
+    setWriteFeedback(null);
+  }
+
+  // Physical write (requires Web NFC on Android Chrome)
+  async function handlePhysicalWrite() {
+    if (!selectedPokemonForWrite) {
+      showToast('Please select a Pokémon to program onto the card.', 'error');
+      return;
+    }
+    const code = customWriteCode.trim().toUpperCase();
+    if (!code) {
+      showToast('Please specify a valid card identifier (e.g. ML-0025).', 'error');
+      return;
+    }
+
+    setWriteFeedback(null);
+    try {
+      Sound.playClick();
+      const result = await writeNfcCard(code, { overwrite: allowOverwrite });
+
+      const now = new Date().toLocaleTimeString();
+      setWriteFeedback({
+        type: 'success',
+        message: result.message,
+        code,
+        isSimulated: false,
+      });
+
+      // Ensure it is registered in catalog
+      resolveCardRegistryEntry(code);
+
+      // Track in recent programmed list
+      setRecentProgrammedCards(prev => [
+        {
+          code,
+          name: selectedPokemonForWrite.displayName,
+          dexNumber: selectedPokemonForWrite.pokedexNumber,
+          time: now,
+          isSimulated: false,
+        },
+        ...prev.filter(c => c.code !== code),
+      ]);
+
+      Sound.playScanSuccess();
+      showToast(`Physical NTAG215 tag [${code}] written successfully!`, 'success');
+    } catch (err: any) {
+      Sound.playError();
+      setWriteFeedback({
+        type: 'error',
+        message: err.message || 'Failed to write to NFC card.',
+        code,
+        isSimulated: false,
+      });
+      showToast(`Write Failed: ${err.message}`, 'error');
+    }
+  }
+
+  // Simulated write (desktop testing)
+  function handleSimulatedWrite() {
+    if (!selectedPokemonForWrite) return;
+    const code = customWriteCode.trim().toUpperCase();
+    if (!code) return;
+
+    Sound.playClick();
+    const now = new Date().toLocaleTimeString();
+
+    // Register in catalog
+    resolveCardRegistryEntry(code);
+
+    // Add to recent programmed list so it can be tapped in the reader simulator
+    setRecentProgrammedCards(prev => [
+      {
+        code,
+        name: selectedPokemonForWrite.displayName,
+        dexNumber: selectedPokemonForWrite.pokedexNumber,
+        time: now,
+        isSimulated: true,
+      },
+      ...prev.filter(c => c.code !== code),
+    ]);
+
+    setWriteFeedback({
+      type: 'success',
+      message: `[SIMULATED] Card [${code}] written to virtual NTAG215 memory. You can now tap it in the reader tab!`,
+      code,
+      isSimulated: true,
+    });
+
+    Sound.playScanSuccess();
+    showToast(`[SIMULATED] Card [${code}] programmed!`, 'info');
+  }
+
   // NFC Card Scan Logic
   async function handleScanCard(rawCode: string) {
-    const code = rawCode.trim();
+    const code = rawCode.trim().toUpperCase();
     if (!code) return;
 
     // Trigger visual antenna pulse
@@ -162,8 +298,15 @@ export default function HomePage() {
     const now = new Date();
     const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
 
-    // 1. Duplicate check
+    // 1. Resolve against static registry or national dex database
+    const card = resolveCardRegistryEntry(code) || CARD_REGISTRY[code];
     const isRegistered = await HybridStorage.isCardRegistered(code);
+    const regCards = await HybridStorage.getRegisteredCards();
+    const resolvedData = resolveCardToPokemonData(code, regCards);
+    if (resolvedData) {
+      setLastScannedCardData(resolvedData);
+    }
+
     if (isRegistered) {
       setAntennaStatusText(`Duplicate tag: ${code}`);
       setScanSessionLogs(prev => [
@@ -176,12 +319,11 @@ export default function HomePage() {
         },
         ...prev
       ]);
-      showToast(`Rejected: Card [${code}] already registered!`, 'error');
+      Sound.playError();
+      showToast(`Rejected: Card [${code}] already in collection!`, 'error');
       return;
     }
 
-    // 2. Registry match
-    const card = CARD_REGISTRY[code];
     if (!card) {
       setAntennaStatusText(`Unrecognized tag: ${code}`);
       setScanSessionLogs(prev => [
@@ -194,12 +336,13 @@ export default function HomePage() {
         },
         ...prev
       ]);
+      Sound.playError();
       showToast(`Invalid Card: [${code}] not found in registry`, 'error');
       return;
     }
 
     // 3. Register monster
-    const cleanNick = card.name.split(' (')[0].replace(' Tag', '');
+    const cleanNick = resolvedData ? resolvedData.speciesName : card.name.split(' (')[0].replace(' Tag', '');
     const monster = createCreatureInstance(card.speciesId, code, cleanNick, 5);
     await HybridStorage.addCreature(monster);
     await HybridStorage.registerCard(code, monster.instanceId, monster.speciesId);
@@ -516,8 +659,8 @@ export default function HomePage() {
               <nav className="menu-buttons">
                 <button className="pixel-btn btn-primary" onClick={() => navigateTo('view-scan')}>
                   <span className="btn-icon">📡</span>
-                  <span className="btn-label">SCAN NFC CARD</span>
-                  <span className="btn-sub">Add creature with card</span>
+                  <span className="btn-label">NFC LAB & PROGRAMMER</span>
+                  <span className="btn-sub">Read & Write NTAG215 Tags</span>
                 </button>
                 <button className="pixel-btn" onClick={() => navigateTo('view-collection')}>
                   <span className="btn-icon">📦</span>
@@ -542,149 +685,448 @@ export default function HomePage() {
             </section>
 
             {/* ========================================== */}
-            {/* VIEW 2: NFC SCANNER SIMULATOR (STAGE A)    */}
+            {/* VIEW 2: NFC LAB & PROGRAMMER               */}
             {/* ========================================== */}
             <section id="view-scan" className={`view ${currentView === 'view-scan' ? 'active' : ''}`}>
               <div className="view-header">
                 <button className="back-btn" onClick={() => navigateTo('view-menu')}>◀ MENU</button>
-                <h2>NFC CARD SCANNER</h2>
+                <h2>NFC LAB & PROGRAMMER</h2>
                 <div className="hdr-spacer"></div>
               </div>
 
               <div className="scan-container">
-                {/* Physical / Simulated NFC Touch Pad */}
-                <div className="nfc-pad" id="nfc-pad">
-                  <div className={`pad-antenna ${isAntennaPulsing || isNfcScanning ? 'scanning' : ''}`}>
-                    <div className="pad-chip">📡 TAP CARD HERE</div>
-                  </div>
-                  <div className="pad-status" id="pad-status-text">
-                    {isNfcScanning ? 'Physical NFC Scanning Active... Tap Android Card!' : antennaStatusText}
-                  </div>
+                {/* Lab Mode Tabs */}
+                <div className="nfc-mode-tabs">
+                  <button 
+                    className={`nfc-tab-btn ${nfcLabTab === 'read' ? 'active' : ''}`}
+                    onClick={() => { Sound.playClick(); setNfcLabTab('read'); }}
+                  >
+                    📡 READ / SCAN
+                  </button>
+                  <button 
+                    className={`nfc-tab-btn ${nfcLabTab === 'write' ? 'active' : ''}`}
+                    onClick={() => { Sound.playClick(); setNfcLabTab('write'); }}
+                  >
+                    ✍️ WRITE NTAG215
+                  </button>
+                  <button 
+                    className={`nfc-tab-btn ${nfcLabTab === 'guide' ? 'active' : ''}`}
+                    onClick={() => { Sound.playClick(); setNfcLabTab('guide'); }}
+                  >
+                    ℹ️ SETUP GUIDE
+                  </button>
+                </div>
 
-                  {isNfcSupported && (
-                    <div style={{ marginTop: '10px' }}>
-                      <button 
-                        className={`pixel-btn-small ${isNfcScanning ? 'btn-danger' : ''}`}
-                        onClick={isNfcScanning ? stopNfcScan : startNfcScan}
-                        style={{ padding: '6px 12px' }}
+                {/* Hardware Status Banner */}
+                <div className={`nfc-hw-badge ${isNfcSupported ? 'supported' : 'unsupported'}`}>
+                  <div>
+                    <strong>HARDWARE: </strong>
+                    {isNfcSupported ? 'Web NFC Ready (Android Chrome / HTTPS)' : 'Desktop / Simulation Mode'}
+                  </div>
+                  <div style={{ opacity: 0.85 }}>
+                    {isNfcSupported ? 'Physical NTAG215 Active' : 'Virtual NFC'}
+                  </div>
+                </div>
+
+                {/* ==================================== */}
+                {/* SUBTAB 1: WRITE NTAG215 TAG          */}
+                {/* ==================================== */}
+                {nfcLabTab === 'write' && (
+                  <div className="nfc-writer-card">
+                    {/* Pokémon Search & Selection */}
+                    <div className="write-field-group">
+                      <label>SELECT POKÉMON TO PROGRAM:</label>
+                      <input 
+                        type="text"
+                        className="pokemon-search-input"
+                        placeholder="Search by name, #dex, or type..."
+                        value={writeSearchQuery}
+                        onChange={(e) => setWriteSearchQuery(e.target.value)}
+                      />
+                      <div className="pokemon-quick-grid">
+                        {searchPokemon(writeSearchQuery, 16).map(p => (
+                          <button
+                            key={p.pokedexNumber}
+                            className={`pkmn-pick-btn ${selectedPokemonForWrite?.pokedexNumber === p.pokedexNumber ? 'selected' : ''}`}
+                            onClick={() => handleSelectPokemonForWrite(p)}
+                            type="button"
+                          >
+                            <img src={getPokemonArtworkUrl(p.pokedexNumber)} alt={p.name} />
+                            <span>#{String(p.pokedexNumber).padStart(3, '0')}</span>
+                            <span style={{ fontSize: '5.5px', textTransform: 'capitalize' }}>{p.displayName.slice(0, 8)}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Selected Pokémon Preview */}
+                    {selectedPokemonForWrite && (
+                      <div className="writer-pkmn-preview">
+                        <div className="writer-pkmn-thumb">
+                          <img src={getPokemonArtworkUrl(selectedPokemonForWrite.pokedexNumber)} alt={selectedPokemonForWrite.name} />
+                        </div>
+                        <div className="writer-pkmn-info">
+                          <div className="writer-pkmn-name">
+                            #{String(selectedPokemonForWrite.pokedexNumber).padStart(3, '0')} {selectedPokemonForWrite.displayName}
+                          </div>
+                          <div className="writer-pkmn-sub">
+                            {selectedPokemonForWrite.genus || 'Species Tag'} • {selectedPokemonForWrite.types.join(' / ').toUpperCase()}
+                          </div>
+                          <div style={{ display: 'flex', gap: '4px' }}>
+                            {selectedPokemonForWrite.types.map(t => (
+                              <span key={t} className={`type-pill type-${t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()}`}>
+                                {t.toUpperCase()}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Card Identifier Setup */}
+                    <div className="write-field-group">
+                      <label>ASSIGNED NDEF CARD CODE:</label>
+                      <input 
+                        type="text"
+                        className="write-field-input"
+                        value={customWriteCode}
+                        onChange={(e) => setCustomWriteCode(e.target.value.toUpperCase())}
+                        placeholder="e.g. ML-0025"
+                      />
+                      <div style={{ display: 'flex', gap: '4px', marginTop: '4px' }}>
+                        <button
+                          type="button"
+                          className="pixel-btn-small"
+                          onClick={() => setCustomWriteCode(formatCardIdentifier(selectedPokemonForWrite.pokedexNumber))}
+                        >
+                          ML-{String(selectedPokemonForWrite.pokedexNumber).padStart(4, '0')}
+                        </button>
+                        <button
+                          type="button"
+                          className="pixel-btn-small"
+                          onClick={() => setCustomWriteCode(formatCardIdentifier(selectedPokemonForWrite.pokedexNumber, 'ML-PKMN'))}
+                        >
+                          ML-PKMN-{String(selectedPokemonForWrite.pokedexNumber).padStart(4, '0')}
+                        </button>
+                        <button
+                          type="button"
+                          className="pixel-btn-small"
+                          onClick={() => setCustomWriteCode(`MEZASTAR-01-${String(selectedPokemonForWrite.pokedexNumber).padStart(3, '0')}`)}
+                        >
+                          MEZASTAR
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Safe Tag Handling Options */}
+                    <div className="overwrite-toggle-box">
+                      <input 
+                        type="checkbox"
+                        id="chk-overwrite"
+                        checked={allowOverwrite}
+                        onChange={(e) => setAllowOverwrite(e.target.checked)}
+                      />
+                      <label htmlFor="chk-overwrite">
+                        Allow overwriting existing NTAG215 tag records
+                      </label>
+                    </div>
+
+                    <div style={{ fontSize: '6.5px', color: '#64748b', lineHeight: '1.4' }}>
+                      ℹ️ Safe NDEF text payload (~12 bytes). Only the card ID is written to the physical tag. Artwork and combat balance remain safely synced in the application database.
+                    </div>
+
+                    {/* Feedback message banner */}
+                    {writeFeedback && (
+                      <div className={`write-feedback-banner ${writeFeedback.type}`}>
+                        <strong>{writeFeedback.type === 'success' ? '✅ WRITE SUCCESS' : '⚠️ WRITE FAILED'}: </strong>
+                        {writeFeedback.message}
+                      </div>
+                    )}
+
+                    {/* Action Buttons */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {isNfcSupported ? (
+                        <>
+                          <button
+                            type="button"
+                            className={`btn-write-physical ${isNfcWriting ? 'writing' : ''}`}
+                            onClick={handlePhysicalWrite}
+                            disabled={isNfcWriting}
+                          >
+                            <span>{isNfcWriting ? '⏳ WAITING FOR TAG... HOLD TO PHONE ANTENNA' : '📡 WRITE TO PHYSICAL NTAG215 TAG'}</span>
+                          </button>
+                          {isNfcWriting && (
+                            <button
+                              type="button"
+                              className="pixel-btn-small btn-danger"
+                              onClick={cancelNfcWrite}
+                              style={{ padding: '8px', alignSelf: 'center' }}
+                            >
+                              ■ CANCEL WRITING OPERATION
+                            </button>
+                          )}
+                        </>
+                      ) : (
+                        <div style={{ fontSize: '6.5px', color: '#f59e0b', background: '#1c1505', padding: '6px', border: '1px solid #78350f' }}>
+                          ⚠️ Physical NFC writes require Google Chrome on Android over HTTPS. Use the simulated write below to test on desktop!
+                        </div>
+                      )}
+
+                      <button
+                        type="button"
+                        className="btn-write-simulated"
+                        onClick={handleSimulatedWrite}
                       >
-                        {isNfcScanning ? '■ STOP PHYSICAL NFC' : '▶ START PHYSICAL NFC'}
+                        <span>🧪 SIMULATE WRITE (DESKTOP MODE)</span>
                       </button>
                     </div>
-                  )}
-                </div>
-
-                {/* Test Physical Cards Rack */}
-                <div className="test-cards-section">
-                  <div className="section-title">TEST NFC CARDS (STAGE A SIMULATION):</div>
-                  <div className="cards-grid">
-                    <button className="card-chip card-fire" onClick={() => handleScanCard('ML-CARD-IGNI-01')}>
-                      <div className="chip-code">ML-CARD-IGNI-01</div>
-                      <div className="chip-name">Ignisaur (Fire)</div>
-                      <div className="chip-tap">TAP TO SCAN</div>
-                    </button>
-                    <button className="card-chip card-water" onClick={() => handleScanCard('ML-CARD-AQUA-02')}>
-                      <div className="chip-code">ML-CARD-AQUA-02</div>
-                      <div className="chip-name">Aquabite (Water)</div>
-                      <div className="chip-tap">TAP TO SCAN</div>
-                    </button>
-                    <button className="card-chip card-grass" onClick={() => handleScanCard('ML-CARD-FLOR-03')}>
-                      <div className="chip-code">ML-CARD-FLOR-03</div>
-                      <div className="chip-name">Floraslug (Grass)</div>
-                      <div className="chip-tap">TAP TO SCAN</div>
-                    </button>
-                    <button className="card-chip card-electric" onClick={() => handleScanCard('ML-CARD-VOLT-04')}>
-                      <div className="chip-code">ML-CARD-VOLT-04</div>
-                      <div className="chip-name">Voltkit (Electric)</div>
-                      <div className="chip-tap">TAP TO SCAN</div>
-                    </button>
                   </div>
-                </div>
+                )}
 
-                {/* MEZASTAR Official Tags */}
-                <div className="test-cards-section">
-                  <div className="section-title">POKÉMON MEZASTAR SAMPLES:</div>
-                  <div className="cards-grid">
-                    <button className="card-chip card-electric" onClick={() => handleScanCard('ML-MEZASTAR-001')}>
-                      <div className="chip-code">ML-MEZASTAR-001</div>
-                      <div className="chip-name">Pikachu (5★ Z-Move)</div>
-                      <div className="chip-tap">TAP TO SCAN</div>
-                    </button>
-                    <button className="card-chip card-fire" onClick={() => handleScanCard('MEZASTAR-01-001')}>
-                      <div className="chip-code">MEZASTAR-01-001</div>
-                      <div className="chip-name">Charizard (6★ Superstar)</div>
-                      <div className="chip-tap">TAP TO SCAN</div>
-                    </button>
-                    <button className="card-chip card-water" onClick={() => handleScanCard('MEZASTAR-01-003')}>
-                      <div className="chip-code">MEZASTAR-01-003</div>
-                      <div className="chip-name">Blastoise (6★ Superstar)</div>
-                      <div className="chip-tap">TAP TO SCAN</div>
-                    </button>
-                    <button className="card-chip card-grass" onClick={() => handleScanCard('ML-MEZASTAR-004')}>
-                      <div className="chip-code">ML-MEZASTAR-004</div>
-                      <div className="chip-name">Venusaur (6★ Superstar)</div>
-                      <div className="chip-tap">TAP TO SCAN</div>
-                    </button>
-                    <button className="card-chip" style={{ borderLeft: '6px solid var(--type-fighting)' }} onClick={() => handleScanCard('ML-MEZASTAR-005')}>
-                      <div className="chip-code">ML-MEZASTAR-005</div>
-                      <div className="chip-name">Lucario (5★ Mega)</div>
-                      <div className="chip-tap">TAP TO SCAN</div>
-                    </button>
-                    <button className="card-chip" style={{ borderLeft: '6px solid var(--type-ghost)' }} onClick={() => handleScanCard('ML-MEZASTAR-006')}>
-                      <div className="chip-code">ML-MEZASTAR-006</div>
-                      <div className="chip-name">Gengar (4★ Star)</div>
-                      <div className="chip-tap">TAP TO SCAN</div>
-                    </button>
-                  </div>
-                </div>
+                {/* ==================================== */}
+                {/* SUBTAB 2: READ / SCAN NFC TAGS       */}
+                {/* ==================================== */}
+                {nfcLabTab === 'read' && (
+                  <>
+                    {/* Physical / Simulated NFC Touch Pad */}
+                    <div className="nfc-pad" id="nfc-pad">
+                      <div className={`pad-antenna ${isAntennaPulsing || isNfcScanning ? 'scanning' : ''}`}>
+                        <div className="pad-chip">📡 TAP CARD HERE</div>
+                      </div>
+                      <div className="pad-status" id="pad-status-text">
+                        {isNfcScanning ? 'Physical NFC Scanning Active... Tap Android Card!' : antennaStatusText}
+                      </div>
 
-                {/* Manual / Custom Code Input for Negative Testing */}
-                <div className="manual-input-box">
-                  <label htmlFor="input-custom-nfc">TEST CUSTOM / MALFORMED CODE:</label>
-                  <div className="input-row">
-                    <input 
-                      type="text" 
-                      id="input-custom-nfc" 
-                      placeholder="e.g. ML-CARD-UNKNOWN-99" 
-                      autoComplete="off"
-                      value={customCardInput}
-                      onChange={(e) => setCustomCardInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          handleScanCard(customCardInput);
-                          setCustomCardInput('');
-                        }
-                      }}
-                    />
-                    <button 
-                      id="btn-scan-custom" 
-                      className="pixel-btn-small"
-                      onClick={() => {
-                        handleScanCard(customCardInput);
-                        setCustomCardInput('');
-                      }}
-                    >
-                      SCAN CODE
-                    </button>
-                  </div>
-                </div>
+                      {isNfcSupported && (
+                        <div style={{ marginTop: '10px' }}>
+                          <button 
+                            className={`pixel-btn-small ${isNfcScanning ? 'btn-danger' : ''}`}
+                            onClick={isNfcScanning ? stopNfcScan : startNfcScan}
+                            style={{ padding: '6px 12px' }}
+                          >
+                            {isNfcScanning ? '■ STOP PHYSICAL NFC' : '▶ START PHYSICAL NFC'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
 
-                {/* Recent Scan Attempts Log */}
-                <div className="scan-history-box">
-                  <div className="section-title">SESSION SCAN LOG:</div>
-                  <ul id="scan-log-list" className="log-list">
-                    {scanSessionLogs.length === 0 ? (
-                      <li className="log-empty">No cards scanned in this session yet.</li>
-                    ) : (
-                      scanSessionLogs.map((log) => (
-                        <li key={log.id} className={`log-item ${log.status}`}>
-                          <span>[{log.time}] {log.code}</span>
-                          <span>{log.message}</span>
-                        </li>
-                      ))
+                    {/* Scanned Tag Result Card */}
+                    {lastScannedCardData && (
+                      <div className="scanned-preview-card">
+                        <div className="scanned-preview-header">
+                          <span className="scanned-preview-code">TAG: {lastScannedCardData.cardEntry.cardCode}</span>
+                          <span style={{ fontSize: '7px', color: lastScannedCardData.isAlreadyRegistered ? '#fde047' : '#86efac' }}>
+                            {lastScannedCardData.isAlreadyRegistered ? '✓ Enrolled in Collection' : '★ Newly Enrolled'}
+                          </span>
+                        </div>
+                        <div className="scanned-preview-body">
+                          <div className="scanned-preview-thumb">
+                            {lastScannedCardData.artworkUrl ? (
+                              <img src={lastScannedCardData.artworkUrl} alt={lastScannedCardData.speciesName} />
+                            ) : (
+                              <span>📦</span>
+                            )}
+                          </div>
+                          <div className="scanned-preview-stats">
+                            <div style={{ fontSize: '9px', color: '#f8fafc', fontWeight: 'bold' }}>
+                              {lastScannedCardData.pokedexNumber ? `#${String(lastScannedCardData.pokedexNumber).padStart(3, '0')} ` : ''}
+                              {lastScannedCardData.speciesName}
+                            </div>
+                            <div>Types: {lastScannedCardData.types.join(', ')}</div>
+                            <div>Grade: {lastScannedCardData.cardEntry.grade || 'Standard Tag'}</div>
+                            <div>Source: {lastScannedCardData.cardEntry.source}</div>
+                          </div>
+                        </div>
+                      </div>
                     )}
-                  </ul>
-                </div>
+
+                    {/* Programmed Cards in Session */}
+                    {recentProgrammedCards.length > 0 && (
+                      <div className="test-cards-section">
+                        <div className="section-title">PROGRAMMED NTAG215 CARDS (TEST TAP):</div>
+                        <div className="cards-grid">
+                          {recentProgrammedCards.map(c => (
+                            <button 
+                              key={c.code}
+                              className="card-chip"
+                              style={{ borderLeft: '6px solid var(--accent-gold)' }}
+                              onClick={() => handleScanCard(c.code)}
+                            >
+                              <div className="chip-code">{c.code}</div>
+                              <div className="chip-name">{c.name} {c.isSimulated ? '(Sim)' : '(HW)'}</div>
+                              <div className="chip-tap">TAP TO SCAN</div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Test Physical Cards Rack */}
+                    <div className="test-cards-section">
+                      <div className="section-title">PRESET TEST NFC CARDS (STAGE A SIMULATION):</div>
+                      <div className="cards-grid">
+                        <button className="card-chip card-fire" onClick={() => handleScanCard('ML-CARD-IGNI-01')}>
+                          <div className="chip-code">ML-CARD-IGNI-01</div>
+                          <div className="chip-name">Ignisaur (Fire)</div>
+                          <div className="chip-tap">TAP TO SCAN</div>
+                        </button>
+                        <button className="card-chip card-water" onClick={() => handleScanCard('ML-CARD-AQUA-02')}>
+                          <div className="chip-code">ML-CARD-AQUA-02</div>
+                          <div className="chip-name">Aquabite (Water)</div>
+                          <div className="chip-tap">TAP TO SCAN</div>
+                        </button>
+                        <button className="card-chip card-grass" onClick={() => handleScanCard('ML-CARD-FLOR-03')}>
+                          <div className="chip-code">ML-CARD-FLOR-03</div>
+                          <div className="chip-name">Floraslug (Grass)</div>
+                          <div className="chip-tap">TAP TO SCAN</div>
+                        </button>
+                        <button className="card-chip card-electric" onClick={() => handleScanCard('ML-CARD-VOLT-04')}>
+                          <div className="chip-code">ML-CARD-VOLT-04</div>
+                          <div className="chip-name">Voltkit (Electric)</div>
+                          <div className="chip-tap">TAP TO SCAN</div>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* MEZASTAR Official Tags */}
+                    <div className="test-cards-section">
+                      <div className="section-title">POKÉMON MEZASTAR SAMPLES:</div>
+                      <div className="cards-grid">
+                        <button className="card-chip card-electric" onClick={() => handleScanCard('ML-MEZASTAR-001')}>
+                          <div className="chip-code">ML-MEZASTAR-001</div>
+                          <div className="chip-name">Pikachu (5★ Z-Move)</div>
+                          <div className="chip-tap">TAP TO SCAN</div>
+                        </button>
+                        <button className="card-chip card-fire" onClick={() => handleScanCard('MEZASTAR-01-001')}>
+                          <div className="chip-code">MEZASTAR-01-001</div>
+                          <div className="chip-name">Charizard (6★ Superstar)</div>
+                          <div className="chip-tap">TAP TO SCAN</div>
+                        </button>
+                        <button className="card-chip card-water" onClick={() => handleScanCard('MEZASTAR-01-003')}>
+                          <div className="chip-code">MEZASTAR-01-003</div>
+                          <div className="chip-name">Blastoise (6★ Superstar)</div>
+                          <div className="chip-tap">TAP TO SCAN</div>
+                        </button>
+                        <button className="card-chip card-grass" onClick={() => handleScanCard('ML-MEZASTAR-004')}>
+                          <div className="chip-code">ML-MEZASTAR-004</div>
+                          <div className="chip-name">Venusaur (6★ Superstar)</div>
+                          <div className="chip-tap">TAP TO SCAN</div>
+                        </button>
+                        <button className="card-chip" style={{ borderLeft: '6px solid var(--type-fighting)' }} onClick={() => handleScanCard('ML-MEZASTAR-005')}>
+                          <div className="chip-code">ML-MEZASTAR-005</div>
+                          <div className="chip-name">Lucario (5★ Mega)</div>
+                          <div className="chip-tap">TAP TO SCAN</div>
+                        </button>
+                        <button className="card-chip" style={{ borderLeft: '6px solid var(--type-ghost)' }} onClick={() => handleScanCard('ML-MEZASTAR-006')}>
+                          <div className="chip-code">ML-MEZASTAR-006</div>
+                          <div className="chip-name">Gengar (4★ Star)</div>
+                          <div className="chip-tap">TAP TO SCAN</div>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Manual / Custom Code Input for Negative Testing */}
+                    <div className="manual-input-box">
+                      <label htmlFor="input-custom-nfc">TEST CUSTOM / MALFORMED CODE:</label>
+                      <div className="input-row">
+                        <input 
+                          type="text" 
+                          id="input-custom-nfc" 
+                          placeholder="e.g. ML-CARD-UNKNOWN-99" 
+                          autoComplete="off"
+                          value={customCardInput}
+                          onChange={(e) => setCustomCardInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleScanCard(customCardInput);
+                              setCustomCardInput('');
+                            }
+                          }}
+                        />
+                        <button 
+                          id="btn-scan-custom" 
+                          className="pixel-btn-small"
+                          onClick={() => {
+                            handleScanCard(customCardInput);
+                            setCustomCardInput('');
+                          }}
+                        >
+                          SCAN CODE
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Recent Scan Attempts Log */}
+                    <div className="scan-history-box">
+                      <div className="section-title">SESSION SCAN LOG:</div>
+                      <ul id="scan-log-list" className="log-list">
+                        {scanSessionLogs.length === 0 ? (
+                          <li className="log-empty">No cards scanned in this session yet.</li>
+                        ) : (
+                          scanSessionLogs.map((log) => (
+                            <li key={log.id} className={`log-item ${log.status}`}>
+                              <span>[{log.time}] {log.code}</span>
+                              <span>{log.message}</span>
+                            </li>
+                          ))
+                        )}
+                      </ul>
+                    </div>
+                  </>
+                )}
+
+                {/* ==================================== */}
+                {/* SUBTAB 3: SETUP & HARDWARE GUIDE     */}
+                {/* ==================================== */}
+                {nfcLabTab === 'guide' && (
+                  <div className="guide-box">
+                    <div style={{ color: '#f59e0b', fontWeight: 'bold', fontSize: '8px' }}>
+                      NTAG215 DIRECT NFC HARDWARE GUIDE
+                    </div>
+                    
+                    <div className="guide-step">
+                      <span className="guide-step-num">1.</span>
+                      <div>
+                        <strong>No 3rd-Party App Required:</strong> You no longer need the &quot;NFC Tools&quot; app. MONSTERLINK writes and reads directly via the standard Web NFC API.
+                      </div>
+                    </div>
+
+                    <div className="guide-step">
+                      <span className="guide-step-num">2.</span>
+                      <div>
+                        <strong>Device Compatibility:</strong> Physical writing and reading require an <strong>Android smartphone</strong> with NFC enabled (Samsung, Pixel, Xiaomi, etc.) running <strong>Google Chrome</strong> (v89+).
+                      </div>
+                    </div>
+
+                    <div className="guide-step">
+                      <span className="guide-step-num">3.</span>
+                      <div>
+                        <strong>Secure HTTPS Requirement:</strong> The browser only grants NFC permissions in a secure HTTPS context. The live Vercel URL has SSL enabled by default.
+                      </div>
+                    </div>
+
+                    <div className="guide-step">
+                      <span className="guide-step-num">4.</span>
+                      <div>
+                        <strong>Physical Tag Specifications:</strong> Compatible with any standard <strong>NXP NTAG215</strong> NFC tags, stickers, or coin cards (504 bytes Type 2 tag).
+                      </div>
+                    </div>
+
+                    <div className="guide-step">
+                      <span className="guide-step-num">5.</span>
+                      <div>
+                        <strong>How to Program:</strong> In the <em>WRITE NTAG215</em> tab, search or select any Pokémon, click <em>WRITE TO PHYSICAL NTAG215 TAG</em>, and hold your physical tag against the back of your phone near the camera until you hear the confirmation sound.
+                      </div>
+                    </div>
+
+                    <div className="guide-step">
+                      <span className="guide-step-num">6.</span>
+                      <div>
+                        <strong>Browser Limitations:</strong> Apple iOS (Safari &amp; Chrome on iOS) does not support the Web NFC API due to Apple WebKit restrictions. Desktop browsers do not have built-in NFC antennas; use <strong>Simulation Mode</strong> when testing on computers.
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </section>
 

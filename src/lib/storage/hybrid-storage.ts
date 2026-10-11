@@ -7,6 +7,7 @@ export interface StorageService {
   getCollection(): Promise<CreatureInstance[]>;
   addCreature(creature: CreatureInstance): Promise<void>;
   isCardRegistered(cardCode: string): Promise<boolean>;
+  getRegisteredCards(): Promise<Record<string, any>>;
   registerCard(cardCode: string, instanceId: string, speciesId?: string): Promise<boolean>;
   getBattleHistory(): Promise<BattleRecord[]>;
   addBattleRecord(record: BattleRecord): Promise<boolean>;
@@ -96,6 +97,10 @@ export const HybridStorage: StorageService = {
     }
 
     return false;
+  },
+
+  async getRegisteredCards(): Promise<Record<string, any>> {
+    return LocalStorageRepository.getRegisteredCards();
   },
 
   async registerCard(cardCode: string, instanceId: string, speciesId = 'unknown'): Promise<boolean> {

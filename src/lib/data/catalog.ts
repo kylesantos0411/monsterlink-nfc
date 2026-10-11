@@ -356,3 +356,93 @@ export function createCreatureInstance(
     acquiredTimestampUtc: new Date().toISOString(),
   };
 }
+
+import { getPokemonByPokedexNumber } from './pokemon-service';
+import { PokemonSpeciesRecord } from '@/types/pokemon';
+
+/**
+ * Ensures any Pokémon species from the database has a corresponding combat species definition
+ */
+export function ensureSpeciesRegistered(pkmn: PokemonSpeciesRecord): CreatureSpecies {
+  const speciesId = `species_${pkmn.name}`;
+  if (SPECIES_CATALOG[speciesId]) {
+    return SPECIES_CATALOG[speciesId];
+  }
+
+  let elType: ElementType = 'Normal';
+  const firstType = pkmn.types[0]?.toLowerCase();
+  if (firstType === 'fire') elType = 'Fire';
+  else if (firstType === 'water') elType = 'Water';
+  else if (firstType === 'grass') elType = 'Grass';
+  else if (firstType === 'electric') elType = 'Electric';
+
+  const moveIds = elType === 'Fire' ? ['flame_burst', 'fire_fang', 'tackle']
+    : elType === 'Water' ? ['aqua_jet', 'bubble_beam', 'tackle']
+    : elType === 'Grass' ? ['vine_whip', 'spore_blast', 'tackle']
+    : elType === 'Electric' ? ['spark_claw', 'thunder_jolt', 'tackle']
+    : ['quick_strike', 'tackle'];
+
+  const species: CreatureSpecies = {
+    id: speciesId,
+    name: pkmn.displayName,
+    subtitle: pkmn.genus || `${pkmn.displayName} Pokémon`,
+    type: elType,
+    rarity: pkmn.pokedexNumber > 149 ? 'Legendary' : (pkmn.pokedexNumber % 5 === 0 ? 'Rare' : 'Common'),
+    baseStats: {
+      hp: Math.min(120, Math.max(30, Math.floor(pkmn.baseStats.hp * 0.7))),
+      attack: Math.min(130, Math.max(30, Math.floor(pkmn.baseStats.attack * 0.7))),
+      defense: Math.min(130, Math.max(30, Math.floor(pkmn.baseStats.defense * 0.7))),
+      speed: Math.min(130, Math.max(30, Math.floor(pkmn.baseStats.speed * 0.7))),
+    },
+    learnableMoveIds: moveIds,
+    spriteKey: pkmn.name,
+  };
+
+  SPECIES_CATALOG[speciesId] = species;
+  return species;
+}
+
+/**
+ * Resolves any NFC card code against the static registry or dynamically against the National Dex database.
+ * Supports:
+ * - Direct codes: ML-MEZASTAR-001, ML-CARD-IGNI-01, etc.
+ * - National Dex codes: ML-0001 through ML-0151, ML-0448, ML-PKMN-0025, etc.
+ */
+export function resolveCardRegistryEntry(cardCode: string): CardRegistryEntry | null {
+  if (!cardCode) return null;
+  const clean = cardCode.trim().toUpperCase();
+
+  // 1. Direct match
+  if (CARD_REGISTRY[clean]) {
+    return CARD_REGISTRY[clean];
+  }
+
+  // 2. Case-insensitive search in CARD_REGISTRY
+  for (const [key, val] of Object.entries(CARD_REGISTRY)) {
+    if (key.toUpperCase() === clean) return val;
+  }
+
+  // 3. National Dex Pattern: ML-0001 to ML-9999 or ML-PKMN-0001
+  const dexMatch = clean.match(/^ML-(?:PKMN-)?(\d{1,4})$/);
+  if (dexMatch) {
+    const dexNum = parseInt(dexMatch[1], 10);
+    const pkmn = getPokemonByPokedexNumber(dexNum);
+    if (pkmn) {
+      ensureSpeciesRegistered(pkmn);
+      const isLegendary = pkmn.pokedexNumber === 150 || pkmn.pokedexNumber === 151 || [144, 145, 146].includes(pkmn.pokedexNumber);
+      const entry: CardRegistryEntry = {
+        cardCode: clean,
+        speciesId: `species_${pkmn.name}`,
+        name: `${pkmn.displayName} Tag`,
+        rarity: isLegendary ? 'Legendary' : (pkmn.pokedexNumber % 3 === 0 ? 'Rare' : 'Common'),
+        source: 'Programmed NTAG215 Card',
+        grade: isLegendary ? '6-Star Superstar' : '5-Star',
+      };
+      CARD_REGISTRY[clean] = entry;
+      return entry;
+    }
+  }
+
+  return null;
+}
+
