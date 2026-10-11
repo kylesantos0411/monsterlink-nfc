@@ -10,6 +10,9 @@ export interface StorageService {
   registerCard(cardCode: string, instanceId: string, speciesId?: string): Promise<boolean>;
   getBattleHistory(): Promise<BattleRecord[]>;
   addBattleRecord(record: BattleRecord): Promise<boolean>;
+  exportRawData(): Promise<{ collection: CreatureInstance[]; registeredCards: Record<string, any>; history: BattleRecord[] }>;
+  importRawData(data: { collection: CreatureInstance[]; registeredCards?: Record<string, any>; history: BattleRecord[] }): Promise<void>;
+  clearAllData(): Promise<void>;
 }
 
 export const HybridStorage: StorageService = {
@@ -169,5 +172,23 @@ export const HybridStorage: StorageService = {
     }
 
     return true;
+  },
+
+  async exportRawData() {
+    return {
+      collection: LocalStorageRepository.getCollection(),
+      registeredCards: LocalStorageRepository.getRegisteredCards(),
+      history: LocalStorageRepository.getBattleHistory(),
+    };
+  },
+
+  async importRawData(data) {
+    if (data.collection) LocalStorageRepository.saveCollection(data.collection);
+    if (data.registeredCards) LocalStorageRepository.saveRegisteredCards(data.registeredCards);
+    if (data.history) LocalStorageRepository.saveBattleHistory(data.history);
+  },
+
+  async clearAllData() {
+    LocalStorageRepository.clearAll();
   },
 };

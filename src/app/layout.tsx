@@ -21,7 +21,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="antialiased min-h-screen flex flex-col bg-[#0b0e14] text-[#f0f4fc]">
+      <body className="theme-retro crt-enabled">
         {children}
       </body>
     </html>
