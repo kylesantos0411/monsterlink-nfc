@@ -45,3 +45,11 @@ CrashReport*
 
 # Scratch directory
 .scratch/
+
+# Node.js and Next.js
+node_modules/
+.next/
+out/
+.env*.local
+*.tsbuildinfo
+next-env.d.ts

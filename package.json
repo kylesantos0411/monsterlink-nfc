@@ -1,0 +1,36 @@
+{
+  "name": "pokemon-inspired-game",
+  "version": "1.0.0",
+  "description": "**MonsterLink** is a mobile-first 2D creature-collecting game built in Unity (C#) where physical NFC cards link directly to digital creatures. Players scan physical NFC tags to register new creatures into their local collection, inspect creature stats and move pools, engage in turn-based tactical battles against opponents, and review persistent battle records.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "tsx tests/domain.test.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "lucide-react": "^1.55.0",
+    "next": "^16.4.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "autoprefixer": "^10.6.1",
+    "postcss": "^8.5.29",
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}

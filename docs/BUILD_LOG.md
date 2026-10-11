@@ -410,3 +410,53 @@ Implement Phase 4 battle records persistence, a battle history repository with d
 ### Next Recommended Task
 * Obtain user review for Phase 4 completion.
 * Proceed to **Phase 5: Native Android NFC Integration & Physical Hardware Testing**.
+
+---
+
+## Task 5: Phase W1 Next.js 16, TypeScript & Tailwind CSS Foundation
+
+* **Date**: October 11, 2026
+* **Phase**: Phase W1 (Web Architecture Migration)
+* **Status**: Completed & Verified
+
+### Objective
+Establish the modern web architecture stack requested by the user (**Next.js, TypeScript, Tailwind CSS**) in the repository root without overwriting or breaking existing Unity C# assets or the prototype. Port domain models, type charts, deterministic combat engine, card registry, and local persistence into strongly-typed TypeScript modules, backed by automated unit tests and a verified production build.
+
+### Files Created or Modified
+* `package.json` — Configured dependencies (`next`, `react`, `react-dom`, `lucide-react`, `@tailwindcss/postcss`, `typescript`, `tsx`) and scripts (`dev`, `build`, `start`, `test`).
+* `tsconfig.json` — Strict TypeScript configuration with `@/*` path alias mapping to `src/*`.
+* `next.config.ts` — Next.js configuration.
+* `postcss.config.mjs` — Tailwind CSS v4 PostCSS plugin configuration.
+* `src/types/creature.ts` — TypeScript types for `ElementType`, `RarityTier`, `CreatureStats`, `MoveDefinition`, `CreatureSpecies`, and `CreatureInstance`.
+* `src/types/nfc.ts` — TypeScript types for `CardRegistryEntry`, `ScanAttemptLog`, and `RegisteredCardMap`.
+* `src/types/battle.ts` — TypeScript types for `CombatantSide`, `CombatActionStep`, `TurnResult`, and `MoveEffectiveness`.
+* `src/types/records.ts` — TypeScript types for `BattleOutcome`, `CreatureCombatSummary`, `BattleRecord`, and `BattleHistorySaveData`.
+* `src/lib/battle/type-chart.ts` — Exact deterministic type multiplier lookup function.
+* `src/lib/battle/damage-calculator.ts` — Port of the deterministic damage formula with min 1 HP clamp.
+* `src/lib/data/catalog.ts` — Original sample species catalog, move catalog, MEZASTAR-style card registry, and creature factory.
+* `src/lib/battle/battle-engine.ts` — State machine handling speed priority, action execution, and faint short-circuiting.
+* `src/lib/battle/record-factory.ts` — Generates immutable `BattleRecord` payloads from `BattleEngine` matches.
+* `src/lib/storage/local-repository.ts` — Client storage repository with schema versioning (`schemaVersion: 1`) and duplicate card/battle protection.
+* `src/app/globals.css` — Global styles with Tailwind v4 `@import "tailwindcss"` and retro palette variables.
+* `src/app/layout.tsx` — Root layout for Next.js App Router.
+* `src/app/page.tsx` — Full mobile-first interface implementing NFC Scanning, Creature Collection, Battle Arena, and Battle History tabs.
+* `tests/domain.test.ts` — Automated test suite verifying type chart math, damage calculation, battle turn flow, fainted logic, record generation, and card registration.
+* `docs/BUILD_LOG.md` — Appended Task 5 execution log.
+
+### Tests Executed and Actual Results
+* **TypeScript Domain Unit Tests (`npm test` -> `tsx tests/domain.test.ts`)**:
+  - *Type Chart Multipliers*: Verified Fire vs Grass (2.0x), Fire vs Water (0.5x), Electric vs Water (2.0x), Normal vs Normal (1.0x). -> **PASSED**
+  - *Damage Calculation Math*: Verified damage formula with 0.5x weak type modifier; evaluated to 2 HP (> 0). -> **PASSED**
+  - *Battle Engine Flow & Faint Halting*: Simulated match between Ignisaur and Aquabite; verified turns alternating, speed-ordered, and concluding when HP reached 0. -> **PASSED**
+  - *Battle Record Generation*: Confirmed battle record generation with outcome, moves list, and exact start/end HP. -> **PASSED**
+  - *Card Registry & Factory*: Verified card registry lookup and species scaling. -> **PASSED**
+* **Next.js Production Build (`npm run build`)**:
+  - *Result*: Next.js App Router build succeeded with zero errors (`Compiled successfully in 6.4s`, static pages generated, TypeScript type-check passed in 1591ms). -> **PASSED**
+
+### Known Issues
+* None. Both C# test runners and TypeScript test suites pass cleanly with zero regressions.
+
+### Next Recommended Task
+* **Phase W2: PokéAPI Reference & MEZASTAR Tag Data Integration**:
+  - Connect PokéAPI for general Pokémon reference information (stats, sprites, moves).
+  - Model official Pokémon MEZASTAR tag attributes (star grades, energy ratings, tag IDs).
