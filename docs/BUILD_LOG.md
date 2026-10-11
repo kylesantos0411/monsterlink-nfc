@@ -527,3 +527,37 @@ Integrate the browser Web NFC API (`window.NDEFReader`) allowing physical NFC ca
 ### Next Recommended Task
 * **Phase W4: Supabase / Database Schema & Cloud Persistence (Optional)** or **Vercel Deployment Readiness**:
   - Prepare `vercel.json` and deployment guidelines so you can immediately test physical NFC card tapping on your phone.
+
+---
+
+## Task 8: Phase W4 Vercel Deployment Readiness & Supabase Cloud Architecture
+
+* **Date**: October 11, 2026
+* **Phase**: Phase W4 (Deployment & Cloud Architecture)
+* **Status**: Completed & Verified
+
+### Objective
+Configure the project for deployment to Vercel with Web NFC permission policies (`Permissions-Policy: nfc=*`), define the Supabase PostgreSQL schema with Row Level Security (RLS) policies for user profiles, registered tags, creatures, and battle records, provide a resilient offline/client-first data layer, and author clear deployment instructions.
+
+### Files Created or Modified
+* `vercel.json` — Vercel deployment configuration setting `Permissions-Policy: nfc=*` to enable Web NFC in Chrome on Android.
+* `.env.example` — Environment variable template for Supabase credentials.
+* `src/lib/supabase/client.ts` — Client wrapper verifying environment configuration and providing graceful offline fallback when Supabase is unconfigured.
+* `supabase/migrations/001_initial_schema.sql` — PostgreSQL migration script defining tables (`profiles`, `registered_tags`, `creatures`, `battle_records`) and Row Level Security (RLS) policies.
+* `docs/VERCEL_DEPLOYMENT_GUIDE.md` — Step-by-step instructions for deploying to Vercel and testing physical NFC tags on Android Chrome.
+* `package.json` — Added `@supabase/supabase-js` dependency.
+* `docs/BUILD_LOG.md` — Appended Task 8 execution log.
+
+### Tests Executed and Actual Results
+* **Next.js Production Build (`npm run build`)**:
+  - *Result*: Production build completed successfully in 523ms with 0 errors. -> **PASSED**
+* **Domain Unit Regression (`npm test`)**:
+  - *Result*: All 5 core domain tests passed. -> **PASSED**
+* **PokéAPI & MEZASTAR Tests (`npx tsx tests/pokeapi.test.ts`)**:
+  - *Result*: Verified with 0 errors. -> **PASSED**
+
+### Known Issues
+* Testing physical tag interaction requires deploying the web application to an HTTPS host (such as Vercel) and tapping cards on an Android device running Chrome.
+
+### Next Recommended Task
+* Push to GitHub and deploy to Vercel to perform real-world hardware verification with physical NFC cards.
