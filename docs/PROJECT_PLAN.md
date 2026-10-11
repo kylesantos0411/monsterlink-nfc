@@ -95,24 +95,23 @@
 ### Phase 3: Pure Battle Engine, Deterministic Calculations & Battle UI
 * **Goal**: Construct the turn-based creature battle engine with deterministic combat rules, decoupled from Unity UI, followed by a responsive mobile battle interface.
 * **Prerequisites**: Phase 2 approved and validated.
+* **Status**: **COMPLETED & VERIFIED**
 * **Deliverables**:
-  - `BattleEngine`: Pure C# class managing combat state, turns, creature references, and action queues.
+  - `BattleEngine`: Pure C# state machine managing turns, creature clones, action queues, faint handling, and win/loss detection.
   - `BattleDamageCalculator`: Documented deterministic formula:
-    $$\text{Damage} = \left\lfloor \left( \frac{2 \times \text{Level}}{5} + 2 \right) \times \frac{\text{Move Power} \times \text{Attacker ATK}}{\text{Defender DEF} \times 50} + 2 \right\rfloor \times \text{TypeModifier}$$
-  - Type effectiveness matrix (Fire > Grass > Water > Fire; Neutral interactions).
-  - Battle State Machine: `SelectingAction`, `ExecutingPlayerMove`, `ExecutingOpponentMove`, `EvaluatingFaint`, `BattleOver`.
-  - Opponent AI: Deterministic decision-making selecting moves based on type advantage or power.
-  - Battle UI Scene:
-    - Creature sprites, names, levels, and dynamic HP bars with numeric indicators.
-    - Move selection grid (up to 4 moves per creature) showing move details.
-    - Combat dialogue/log box narrating actions step-by-step.
-    - End-of-battle victory/defeat dialog with Return to Menu and Rematch buttons.
+    $$\text{Damage} = \max\left(1, \left\lfloor \left( \left\lfloor \frac{2 \times \text{Level}}{5} + 2 \right\rfloor \times \frac{\text{Move Power} \times \text{Attacker ATK}}{\text{Defender DEF} \times 50} + 2 \right) \times \text{TypeModifier} \right\rfloor\right)$$
+  - `TypeChart`: Type effectiveness matrix (Fire > Grass > Water > Fire, Electric > Water, etc.).
+  - `DamageCalculationResult` & `CombatActionStep`: Value objects reporting granular round events.
+  - `TurnResult`: Structured round outcome reporting action steps and victory condition.
+  - Opponent AI: Deterministic decision-making selecting moves based on highest damage / type advantage score.
+  - `IBattleView`, `BattlePresenter`, `MockBattleView`, and `BattleScreenUI`.
+  - Automated test suite `Phase3Tests.cs` and batch runner `run-phase3-tests.bat`.
 * **Acceptance Criteria**:
-  - [ ] Battle calculations produce exact, reproducible values based strictly on stats and type matchups.
-  - [ ] Damage is calculated and applied by the engine; UI only renders engine state updates.
-  - [ ] Fainted creatures cannot take actions.
-  - [ ] Battle detects win/loss conditions immediately when either creature hits 0 HP.
-  - [ ] Battle can be aborted gracefully without corrupting persistent state.
+  - [x] Battle calculations produce exact, reproducible values based strictly on stats and type matchups.
+  - [x] Damage is calculated and applied by the engine; UI only renders engine state updates.
+  - [x] Fainted creatures cannot take actions.
+  - [x] Battle detects win/loss conditions immediately when either creature hits 0 HP.
+  - [x] Battle can be aborted gracefully without corrupting persistent state.
 
 ---
 
@@ -183,7 +182,7 @@
 | **M0: Project Setup & Docs** | Phase 0 | **PASSED** | Clean repo, structured directories, approved plan |
 | **M1: Collection & Data Core** | Phase 1 | **PASSED** | 4 sample creatures visible, persistent save/load functional |
 | **M2: Simulated NFC System** | Phase 2 | **PASSED** | Card codes scanned, duplicate check prevents double-register |
-| **M3: Combat Engine & UI** | Phase 3 | Pending | Deterministic battles, victory/defeat detected and rendered |
+| **M3: Combat Engine & UI** | Phase 3 | **PASSED** | Deterministic battles, victory/defeat detected and rendered |
 | **M4: Battle History** | Phase 4 | Pending | Records saved, history viewer renders past battles |
 | **M5: Physical Android NFC** | Phase 5 | Pending | Physical tag scan succeeds on Android test device |
 | **M6: Prototype Sign-off** | Phase 6 | Pending | Full regression passed, zero critical bugs, documentation complete |

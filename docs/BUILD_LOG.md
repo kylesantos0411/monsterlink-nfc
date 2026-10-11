@@ -267,3 +267,75 @@ Implement the hardware-abstracted NFC scanning workflow, software-driven simulat
 ### Next Recommended Task
 * Obtain user approval for Phase 2 completion.
 * Proceed to **Phase 3: Pure Battle Engine, Deterministic Calculations & Battle UI**.
+
+---
+
+## Task 3: Phase 3 Deterministic Turn-Based Battle Engine & Battle UI Integration
+
+* **Date**: October 11, 2026
+* **Phase**: Phase 3
+* **Status**: Completed & Verified
+
+### Objective
+Build a pure C# deterministic, turn-based battle engine for two creatures using saved stats and move definitions. Implement the exact damage calculation formula, type effectiveness multipliers, speed priority, action queuing, faint short-circuiting, invalid move fallbacks, and victory/defeat detection. Keep combat resolution completely independent of UI/rendering systems, build the MVP Battle UI presenter and view contracts, and author comprehensive automated unit tests verifying deterministic repeatability.
+
+### Files Created or Modified
+* `Assets/Scripts/Battle/TypeChart.cs` — Deterministic elemental type multiplier matrix (Fire, Water, Grass, Electric, Normal).
+* `Assets/Scripts/Battle/DamageCalculationResult.cs` — Value struct holding damage amount, type multiplier, and effectiveness category.
+* `Assets/Scripts/Battle/BattleDamageCalculator.cs` — Pure damage formula calculator adhering to `floor` truncations, stat scaling, and minimum 1 HP constraint.
+* `Assets/Scripts/Battle/CombatActionStep.cs` — Detailed action step reporting attacker, defender, move used, damage dealt, remaining HP, and narration.
+* `Assets/Scripts/Battle/TurnResult.cs` — Round outcome report containing action step sequence, faint status, and victory state.
+* `Assets/Scripts/Battle/BattleEngine.cs` — State machine managing turn execution, creature clones, speed priority, AI move selection, and faint evaluation.
+* `Assets/Scripts/UI/IBattleView.cs` — View contract for the Battle Arena UI.
+* `Assets/Scripts/UI/BattlePresenter.cs` — MVP Presenter translating user actions into engine commands and updating view state from engine steps.
+* `Assets/Scripts/UI/MockBattleView.cs` — Test double for automated UI verification.
+* `Assets/Scripts/UI/BattleScreenUI.cs` — Unity `MonoBehaviour` adapter with conditional compilation for Canvas integration.
+* `Assets/Scripts/Tests/Phase3Tests.cs` — Automated test harness covering TC-301 through TC-309.
+* `run-phase3-tests.bat` — One-click Windows test runner for Phase 3 tests.
+* `docs/PROJECT_PLAN.md` — Marked Phase 3 acceptance criteria and Milestone M3 as PASSED.
+* `docs/BUILD_LOG.md` — Appended Task 3 execution log.
+* `docs/TEST_CHECKLIST.md` — Updated TC-301 through TC-309 to PASSED.
+
+### Implementation Summary
+1. **Deterministic Damage Formula**: Implemented exact integer math:
+   `Damage = max(1, floor( ( floor((2 * Level)/5) + 2 ) * (Power * ATK)/(DEF * 50) + 2 ) * TypeMultiplier)`.
+2. **Speed & Action Order**: Handled attack priority based on creature Speed; ties resolve with Player acting first (deterministic tiebreaker).
+3. **Faint Short-Circuiting**: If the faster attacker inflicts lethal damage in step 1, the defender immediately faints and CANNOT execute a counter-attack.
+4. **Decoupled Architecture**: `BattleEngine` has zero dependencies on `UnityEngine`, allowing fast headless testing. UI elements simply render outcomes dispatched by the engine.
+5. **No Multiplayer or Premature Features**: Preserved single-player local battle prototype scope without networking or online multiplayer.
+
+### Tests Executed and Actual Results
+* **TC-301 (Deterministic Damage Math)**:
+  - *Result*: Evaluated level 5, ATK 10, DEF 10, PWR 40, Mult 1.0; evaluated to exactly 5 damage.
+  - *Verdict*: **PASSED**
+* **TC-302 (Type Effectiveness Multipliers)**:
+  - *Result*: Verified Fire against Grass (2.0x, SuperEffective), Water (0.5x, NotVeryEffective), and Fire (1.0x, Neutral).
+  - *Verdict*: **PASSED**
+* **TC-303 (Minimum Damage Constraint)**:
+  - *Result*: Level 1, ATK 1 against extreme DEF 9999 with 0.5x type dealt exactly 1 HP (never 0 or negative).
+  - *Verdict*: **PASSED**
+* **TC-304 (Speed-Based Turn Order Resolution)**:
+  - *Result*: Fast player attacks first; fast opponent attacks first; speed ties award priority to player.
+  - *Verdict*: **PASSED**
+* **TC-305 (Fainted Creature Halts Action)**:
+  - *Result*: Lethal damage in step 1 concluded round immediately; fainted opponent took 0 actions; player took 0 counter-damage.
+  - *Verdict*: **PASSED**
+* **TC-306 (Invalid Move Handling & Fallback)**:
+  - *Result*: Passing unknown/unlearned move ID falls back cleanly to valid known move without crashing.
+  - *Verdict*: **PASSED**
+* **TC-307 (Victory and Defeat Detection)**:
+  - *Result*: Full battle to 0 HP declared appropriate winner and fainted combatant.
+  - *Verdict*: **PASSED**
+* **TC-308 (Repeatable Deterministic Combat Run)**:
+  - *Result*: Ran 2 identical battles from scratch; confirmed 100% identical turn numbers, step counts, and damage values at every step.
+  - *Verdict*: **PASSED**
+* **TC-309 (UI Presenter HP Synchronization)**:
+  - *Result*: Simulated player clicking move via `BattlePresenter`; verified mock view received exact HP changes and battle dialogue.
+  - *Verdict*: **PASSED**
+
+### Known Issues
+* None. All 9 Phase 3 tests, 7 Phase 2 tests, and 7 Phase 1 tests passed cleanly with 0 warnings.
+
+### Next Recommended Task
+* Obtain user approval for Phase 3 completion.
+* Proceed to **Phase 4: Battle Records, History Persistence & Records Viewer UI**.
