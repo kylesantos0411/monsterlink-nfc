@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { LocalStorageRepository } from '@/lib/storage/local-repository';
+import { HybridStorage } from '@/lib/storage/hybrid-storage';
+import { isSupabaseConfigured } from '@/lib/supabase/client';
 import { CreatureInstance } from '@/types/creature';
 import { BattleRecord } from '@/types/records';
 import { CARD_REGISTRY, SPECIES_CATALOG, createCreatureInstance } from '@/lib/data/catalog';
@@ -57,14 +58,17 @@ export default function HomePage() {
     refreshData();
   }, []);
 
-  function refreshData() {
-    setCollection(LocalStorageRepository.getCollection());
-    setHistory(LocalStorageRepository.getBattleHistory());
+  async function refreshData() {
+    const coll = await HybridStorage.getCollection();
+    const hist = await HybridStorage.getBattleHistory();
+    setCollection(coll);
+    setHistory(hist);
   }
 
   // NFC Scan Handler (Supports both prototype & MEZASTAR tags)
-  function handleScan(cardCode: string) {
-    if (LocalStorageRepository.isCardRegistered(cardCode)) {
+  async function handleScan(cardCode: string) {
+    const alreadyRegistered = await HybridStorage.isCardRegistered(cardCode);
+    if (alreadyRegistered) {
       setScanMessage({ text: `Rejected: Tag "${cardCode}" is already registered in your collection!`, type: 'error' });
       return;
     }
@@ -76,9 +80,9 @@ export default function HomePage() {
     }
 
     const newMonster = createCreatureInstance(card.speciesId, cardCode, card.name.split(' (')[0].replace(' Tag', ''), 5);
-    LocalStorageRepository.addCreature(newMonster);
-    LocalStorageRepository.registerCard(cardCode, newMonster.instanceId);
-    refreshData();
+    await HybridStorage.addCreature(newMonster);
+    await HybridStorage.registerCard(cardCode, newMonster.instanceId, card.speciesId);
+    await refreshData();
     setScanMessage({ text: `Enrolled: ${newMonster.nickname} (Level ${newMonster.level} • ${card.grade || 'Common'}) registered!`, type: 'success' });
   }
 
@@ -104,7 +108,7 @@ export default function HomePage() {
     setActiveTab('battle');
   }
 
-  function handleBattleTurn(moveId: string) {
+  async function handleBattleTurn(moveId: string) {
     if (!activeEngine || activeEngine.isBattleOver) return;
 
     const startPlayerHp = activeEngine.player.currentHp;
@@ -116,8 +120,8 @@ export default function HomePage() {
 
     if (result.isBattleOver) {
       const rec = createBattleRecord(activeEngine, startPlayerHp, startOpponentHp);
-      LocalStorageRepository.addBattleRecord(rec);
-      refreshData();
+      await HybridStorage.addBattleRecord(rec);
+      await refreshData();
     }
 
     // Force re-render
@@ -208,7 +212,7 @@ export default function HomePage() {
               <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">MEZASTAR & Prototype Tags</h3>
               <div className="grid grid-cols-2 gap-2">
                 {Object.values(CARD_REGISTRY).map(card => {
-                  const isRegistered = LocalStorageRepository.isCardRegistered(card.cardCode);
+                  const isRegistered = collection.some(c => c.nfcCardCode === card.cardCode);
                   const isMezastar = card.cardCode.includes('MEZASTAR');
                   return (
                     <button
