@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MonsterLink — NFC Creature Battle Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-retro crt-enabled">
+
+  <!-- Desktop Control Bar -->
+  <aside class="desktop-bar">
+    <div class="bar-brand">
+      <span class="pixel-dot"></span>
+      <strong>MONSTERLINK WEB PROTOTYPE</strong>
+      <span class="tag">Phase 0.5 Preview</span>
+    </div>
+    <div class="bar-actions">
+      <button id="btn-toggle-frame" class="bar-btn" title="Toggle between smartphone mockup and responsive view">📱 View: Phone Frame</button>
+      <button id="btn-toggle-crt" class="bar-btn active" title="Toggle CRT scanline raster effect">📺 CRT Effect: ON</button>
+      <button id="btn-toggle-sound" class="bar-btn active" title="Toggle 8-bit sound effects">🔊 Sound: ON</button>
+      <button id="btn-quick-seed" class="bar-btn bar-btn-accent" title="Seed 2 initial sample creatures for testing">⚡ Seed Demo Creatures</button>
+    </div>
+  </aside>
+
+  <!-- Main Simulator Container -->
+  <main class="device-wrapper">
+    <div class="phone-frame" id="phone-frame">
+      
+      <!-- Top Speaker & Camera Notch -->
+      <div class="phone-notch">
+        <div class="notch-speaker"></div>
+        <div class="notch-camera"></div>
+      </div>
+
+      <!-- Phone Screen Viewport -->
+      <div class="screen" id="app-screen">
+        
+        <!-- Retro Status Bar -->
+        <header class="status-bar">
+          <span class="status-time" id="clock-display">12:00</span>
+          <span class="status-title">MONSTERLINK</span>
+          <div class="status-icons">
+            <span class="nfc-indicator" title="NFC Prototype Active">📡 NFC</span>
+            <span class="battery-icon">▮▮▮</span>
+          </div>
+        </header>
+
+        <!-- Notification Toast Banner -->
+        <div id="toast-banner" class="toast-banner hidden">
+          <span id="toast-icon">ℹ️</span>
+          <span id="toast-text">Message goes here</span>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 1: MAIN MENU                          -->
+        <!-- ========================================== -->
+        <section id="view-menu" class="view active">
+          <div class="menu-hero">
+            <div class="logo-box">
+              <div class="logo-subtitle">PHYSICAL NFC x RETRO 2D</div>
+              <h1 class="logo-title">MONSTER<br><span>LINK</span></h1>
+              <div class="logo-version">PROTOTYPE V0.5</div>
+            </div>
+            <div class="hero-mascot" id="menu-mascot-container">
+              <!-- Animated Pixel Mascot injected here -->
+            </div>
+          </div>
+
+          <nav class="menu-buttons">
+            <button class="pixel-btn btn-primary" data-nav="view-scan">
+              <span class="btn-icon">📡</span>
+              <span class="btn-label">SCAN NFC CARD</span>
+              <span class="btn-sub">Add creature with card</span>
+            </button>
+            <button class="pixel-btn" data-nav="view-collection">
+              <span class="btn-icon">📦</span>
+              <span class="btn-label">MY COLLECTION</span>
+              <span class="btn-badge" id="menu-collection-count">0</span>
+            </button>
+            <button class="pixel-btn btn-battle" data-nav="view-battle">
+              <span class="btn-icon">⚔️</span>
+              <span class="btn-label">BATTLE ARENA</span>
+              <span class="btn-sub">Turn-based combat</span>
+            </button>
+            <button class="pixel-btn" data-nav="view-history">
+              <span class="btn-icon">📜</span>
+              <span class="btn-label">BATTLE RECORDS</span>
+              <span class="btn-sub">Past match history</span>
+            </button>
+            <button class="pixel-btn" data-nav="view-settings">
+              <span class="btn-icon">⚙️</span>
+              <span class="btn-label">SETTINGS & DATA</span>
+            </button>
+          </nav>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- VIEW 2: NFC SCANNER SIMULATOR (STAGE A)    -->
+        <!-- ========================================== -->
+        <section id="view-scan" class="view">
+          <div class="view-header">
+            <button class="back-btn" data-nav="view-menu">◀ MENU</button>
+            <h2>NFC CARD SCANNER</h2>
+            <div class="hdr-spacer"></div>
+          </div>
+
+          <div class="scan-container">
+            <!-- Simulated NFC Touch Pad -->
+            <div class="nfc-pad" id="nfc-pad">
+              <div class="pad-antenna">
+                <div class="wave wave-1"></div>
+                <div class="wave wave-2"></div>
+                <div class="wave wave-3"></div>
+                <div class="pad-chip">📡 TAP CARD HERE</div>
+              </div>
+              <div class="pad-status" id="pad-status-text">Ready for NFC Card Tap</div>
+            </div>
+
+            <!-- Test Physical Cards Rack -->
+            <div class="test-cards-section">
+              <div class="section-title">TEST NFC CARDS (STAGE A SIMULATION):</div>
+              <div class="cards-grid">
+                <button class="card-chip card-fire" data-code="ML-CARD-IGNI-01">
+                  <div class="chip-code">ML-CARD-IGNI-01</div>
+                  <div class="chip-name">Ignisaur (Fire)</div>
+                  <div class="chip-tap">TAP TO SCAN</div>
+                </button>
+                <button class="card-chip card-water" data-code="ML-CARD-AQUA-02">
+                  <div class="chip-code">ML-CARD-AQUA-02</div>
+                  <div class="chip-name">Aquabite (Water)</div>
+                  <div class="chip-tap">TAP TO SCAN</div>
+                </button>
+                <button class="card-chip card-grass" data-code="ML-CARD-FLOR-03">
+                  <div class="chip-code">ML-CARD-FLOR-03</div>
+                  <div class="chip-name">Floraslug (Grass)</div>
+                  <div class="chip-tap">TAP TO SCAN</div>
+                </button>
+                <button class="card-chip card-electric" data-code="ML-CARD-VOLT-04">
+                  <div class="chip-code">ML-CARD-VOLT-04</div>
+                  <div class="chip-name">Voltkit (Electric)</div>
+                  <div class="chip-tap">TAP TO SCAN</div>
+                </button>
+              </div>
+            </div>
+
+            <!-- Manual / Custom Code Input for Negative Testing -->
+            <div class="manual-input-box">
+              <label for="input-custom-nfc">TEST CUSTOM / MALFORMED CODE:</label>
+              <div class="input-row">
+                <input type="text" id="input-custom-nfc" placeholder="e.g. ML-CARD-UNKNOWN-99" autocomplete="off" />
+                <button id="btn-scan-custom" class="pixel-btn-small">SCAN CODE</button>
+              </div>
+            </div>
+
+            <!-- Recent Scan Attempts Log -->
+            <div class="scan-history-box">
+              <div class="section-title">SESSION SCAN LOG:</div>
+              <ul id="scan-log-list" class="log-list">
+                <li class="log-empty">No cards scanned in this session yet.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- VIEW 3: CREATURE COLLECTION                -->
+        <!-- ========================================== -->
+        <section id="view-collection" class="view">
+          <div class="view-header">
+            <button class="back-btn" data-nav="view-menu">◀ MENU</button>
+            <h2>COLLECTION</h2>
+            <button class="header-action-btn" data-nav="view-scan">+ SCAN</button>
+          </div>
+
+          <div class="collection-summary">
+            <span>REGISTERED CREATURES: <strong id="coll-count-text">0</strong></span>
+          </div>
+
+          <div class="collection-scroll" id="collection-grid">
+            <!-- Creature cards rendered here -->
+          </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- VIEW 4: TURN-BASED BATTLE ARENA            -->
+        <!-- ========================================== -->
+        <section id="view-battle" class="view">
+          <div class="view-header">
+            <button class="back-btn" id="btn-battle-quit">◀ FORFEIT</button>
+            <h2>BATTLE ARENA</h2>
+            <div class="hdr-spacer"></div>
+          </div>
+
+          <!-- Pre-Battle Creature Picker Overlay -->
+          <div id="battle-pre-modal" class="battle-setup-view">
+            <div class="setup-box">
+              <h3>CHOOSE YOUR CREATURE</h3>
+              <p class="setup-sub">Select one of your registered creatures to enter combat:</p>
+              <div id="battle-roster-select" class="roster-grid">
+                <!-- Roster selectable cards -->
+              </div>
+              <div class="ai-opponent-select">
+                <label>OPPONENT CREATURE:</label>
+                <select id="select-ai-opponent">
+                  <option value="species_aquabite">Aquabite (Water / Defensive)</option>
+                  <option value="species_ignisaur">Ignisaur (Fire / Aggressive)</option>
+                  <option value="species_floraslug">Floraslug (Grass / High HP)</option>
+                  <option value="species_voltkit">Voltkit (Electric / High Speed)</option>
+                </select>
+              </div>
+              <button id="btn-start-battle" class="pixel-btn btn-battle" disabled>START BATTLE</button>
+            </div>
+          </div>
+
+          <!-- Active Battle Ground -->
+          <div id="battle-active-ground" class="battle-ground hidden">
+            
+            <!-- Opponent Platform (Top Right) -->
+            <div class="combat-unit opponent-unit">
+              <div class="hud-box">
+                <div class="hud-top">
+                  <span class="unit-name" id="opp-name">Aquabite</span>
+                  <span class="unit-lvl" id="opp-lvl">Lv.5</span>
+                </div>
+                <div class="hp-bar-outer">
+                  <span class="hp-label">HP</span>
+                  <div class="hp-bar-bg">
+                    <div class="hp-bar-fill" id="opp-hp-bar" style="width: 100%;"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="sprite-platform opp-platform">
+                <div class="sprite-holder" id="opp-sprite-holder">
+                  <!-- Opponent SVG Sprite -->
+                </div>
+                <div class="platform-shadow"></div>
+              </div>
+            </div>
+
+            <!-- Player Platform (Bottom Left) -->
+            <div class="combat-unit player-unit">
+              <div class="sprite-platform player-platform">
+                <div class="sprite-holder" id="player-sprite-holder">
+                  <!-- Player SVG Sprite -->
+                </div>
+                <div class="platform-shadow"></div>
+              </div>
+              <div class="hud-box">
+                <div class="hud-top">
+                  <span class="unit-name" id="player-name">Ignisaur</span>
+                  <span class="unit-lvl" id="player-lvl">Lv.5</span>
+                </div>
+                <div class="hp-bar-outer">
+                  <span class="hp-label">HP</span>
+                  <div class="hp-bar-bg">
+                    <div class="hp-bar-fill" id="player-hp-bar" style="width: 100%;"></div>
+                  </div>
+                </div>
+                <div class="hp-numbers" id="player-hp-numbers">24 / 24</div>
+              </div>
+            </div>
+
+            <!-- Combat Narration Dialog & Move Command Box -->
+            <div class="battle-controls">
+              <!-- Narration Log Banner -->
+              <div class="battle-dialogue" id="battle-dialogue-text">
+                What will your creature do?
+              </div>
+
+              <!-- 4-Move Command Grid -->
+              <div class="moves-grid" id="battle-moves-grid">
+                <!-- Move 1 to 4 buttons -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Battle Outcome Modal -->
+          <div id="battle-result-modal" class="modal-overlay hidden">
+            <div class="modal-box result-box">
+              <div class="result-title" id="result-title">VICTORY!</div>
+              <div class="result-subtitle" id="result-subtitle">You won the battle!</div>
+              <div class="result-stats" id="result-stats">
+                <!-- Turn count, damage, etc. -->
+              </div>
+              <div class="modal-actions">
+                <button id="btn-result-rematch" class="pixel-btn btn-primary">BATTLE AGAIN</button>
+                <button id="btn-result-menu" class="pixel-btn" data-nav="view-menu">RETURN TO MENU</button>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ========================================== -->
+        <!-- VIEW 5: BATTLE RECORDS                     -->
+        <!-- ========================================== -->
+        <section id="view-history" class="view">
+          <div class="view-header">
+            <button class="back-btn" data-nav="view-menu">◀ MENU</button>
+            <h2>BATTLE RECORDS</h2>
+            <button class="header-action-btn danger" id="btn-clear-history">CLEAR</button>
+          </div>
+
+          <div class="history-scroll" id="history-list">
+            <!-- Battle records rendered here -->
+          </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- VIEW 6: SETTINGS & PERSISTENCE INSPECTOR   -->
+        <!-- ========================================== -->
+        <section id="view-settings" class="view">
+          <div class="view-header">
+            <button class="back-btn" data-nav="view-menu">◀ MENU</button>
+            <h2>SETTINGS & DATA</h2>
+            <div class="hdr-spacer"></div>
+          </div>
+
+          <div class="settings-content">
+            <div class="setting-group">
+              <h3>AUDIO & DISPLAY</h3>
+              <div class="setting-row">
+                <span>8-Bit Synthesizer Audio</span>
+                <button id="setting-sound-btn" class="toggle-btn active">ENABLED</button>
+              </div>
+              <div class="setting-row">
+                <span>CRT Scanlines Effect</span>
+                <button id="setting-crt-btn" class="toggle-btn active">ENABLED</button>
+              </div>
+            </div>
+
+            <div class="setting-group">
+              <h3>LOCAL DATA PERSISTENCE</h3>
+              <p class="setting-note">Data saved to localStorage under schema v1 (matches C# JsonStorageService)</p>
+              <div class="data-actions">
+                <button id="btn-inspect-json" class="pixel-btn">INSPECT RAW JSON</button>
+                <button id="btn-export-json" class="pixel-btn">DOWNLOAD BACKUP</button>
+                <button id="btn-reset-data" class="pixel-btn btn-danger">WIPE ALL STORAGE</button>
+              </div>
+            </div>
+
+            <!-- JSON Payload Viewer Modal -->
+            <div id="json-viewer-box" class="json-box hidden">
+              <div class="json-header">
+                <strong>PERSISTENT STORAGE DUMP:</strong>
+                <button id="btn-close-json" class="close-x">✕</button>
+              </div>
+              <pre id="json-pre-content"></pre>
+            </div>
+          </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- CREATURE DETAILS MODAL (COLLECTION)       -->
+        <!-- ========================================== -->
+        <div id="creature-detail-modal" class="modal-overlay hidden">
+          <div class="modal-box detail-modal-box">
+            <div class="modal-header">
+              <span class="detail-type-badge" id="modal-type-badge">FIRE</span>
+              <h3 id="modal-creature-name">Ignisaur</h3>
+              <button class="close-x" id="btn-close-detail">✕</button>
+            </div>
+            <div class="detail-body">
+              <div class="detail-sprite-box" id="modal-sprite-box"></div>
+              <div class="detail-info">
+                <div class="info-row">
+                  <span>Species ID:</span>
+                  <strong id="modal-species-id">species_ignisaur</strong>
+                </div>
+                <div class="info-row">
+                  <span>Instance ID:</span>
+                  <code id="modal-instance-id">inst_xxx</code>
+                </div>
+                <div class="info-row">
+                  <span>Assigned NFC Card:</span>
+                  <span class="nfc-badge" id="modal-nfc-code">ML-CARD-IGNI-01</span>
+                </div>
+                <div class="info-row">
+                  <span>Level:</span>
+                  <strong id="modal-level">Lv. 5</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="detail-stats-section">
+              <h4>COMBAT STATS</h4>
+              <div class="stat-bars">
+                <div class="stat-item">
+                  <span class="stat-lbl">HP:</span>
+                  <span class="stat-val" id="modal-stat-hp">24</span>
+                  <div class="stat-bar-bg"><div class="stat-bar-fill" id="modal-bar-hp" style="width: 50%;"></div></div>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-lbl">ATK:</span>
+                  <span class="stat-val" id="modal-stat-atk">14</span>
+                  <div class="stat-bar-bg"><div class="stat-bar-fill" id="modal-bar-atk" style="width: 50%;"></div></div>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-lbl">DEF:</span>
+                  <span class="stat-val" id="modal-stat-def">12</span>
+                  <div class="stat-bar-bg"><div class="stat-bar-fill" id="modal-bar-def" style="width: 50%;"></div></div>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-lbl">SPD:</span>
+                  <span class="stat-val" id="modal-stat-spd">15</span>
+                  <div class="stat-bar-bg"><div class="stat-bar-fill" id="modal-bar-spd" style="width: 50%;"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="detail-moves-section">
+              <h4>KNOWN MOVES</h4>
+              <div class="detail-moves-list" id="modal-moves-list">
+                <!-- Move pills -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div> <!-- /screen -->
+    </div> <!-- /phone-frame -->
+  </main>
+
+  <script src="bundle.js"></script>
+</body>
+</html>

@@ -1,0 +1,1737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MonsterLink — NFC Creature Battle Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+  <style>
+/* ===================================================================
+   MONSTERLINK RETRO 2D PIXEL THEME & MOBILE FRAME STYLES
+   =================================================================== */
+
+:root {
+  --bg-dark: #12141d;
+  --frame-bg: #1e2230;
+  --screen-bg: #e8ecda; /* Classic Game Boy Advance pale screen tint */
+  --screen-inner: #0f171e;
+  --text-main: #f0f4f8;
+  --text-dark: #141b22;
+  --text-dim: #8b9bb4;
+  --pixel-border: #090d13;
+  
+  /* Type Colors */
+  --type-fire: #e74c3c;
+  --type-water: #3498db;
+  --type-grass: #2ecc71;
+  --type-electric: #f1c40f;
+  --type-normal: #95a5a6;
+
+  /* UI Accent Colors */
+  --accent-gold: #f39c12;
+  --accent-green: #27ae60;
+  --accent-red: #c0392b;
+  --accent-blue: #2980b9;
+
+  --font-pixel: 'Press Start 2P', monospace;
+  --font-retro: 'VT323', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  image-rendering: pixelated;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  font-family: var(--font-pixel);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: hidden;
+}
+
+/* -------------------------------------------------------------------
+   DESKTOP TOOLBAR (TOP)
+   ------------------------------------------------------------------- */
+.desktop-bar {
+  width: 100%;
+  background: #181d29;
+  border-bottom: 2px solid #283347;
+  padding: 8px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 10px;
+  z-index: 100;
+}
+
+.bar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pixel-dot {
+  width: 10px;
+  height: 10px;
+  background: var(--accent-green);
+  display: inline-block;
+  box-shadow: 0 0 8px var(--accent-green);
+  animation: pulse-dot 1.5s infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.bar-brand .tag {
+  background: #2a364f;
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: #9cb3d8;
+  font-size: 8px;
+}
+
+.bar-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bar-btn {
+  background: #232c3d;
+  color: #cad8ee;
+  border: 1px solid #3b4963;
+  padding: 6px 10px;
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.bar-btn:hover {
+  background: #2f3b52;
+  border-color: #556b90;
+}
+
+.bar-btn.active {
+  background: #1f4228;
+  border-color: #388e3c;
+  color: #a5d6a7;
+}
+
+.bar-btn-accent {
+  background: #8e44ad;
+  border-color: #bb86fc;
+  color: #ffffff;
+}
+.bar-btn-accent:hover {
+  background: #9b59b6;
+}
+
+/* -------------------------------------------------------------------
+   PHONE FRAME SIMULATOR
+   ------------------------------------------------------------------- */
+.device-wrapper {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px 10px;
+  width: 100%;
+}
+
+.phone-frame {
+  width: 390px;
+  height: 800px;
+  background: #181d27;
+  border: 12px solid #2e384d;
+  border-radius: 46px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 0 3px #131720;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  transition: width 0.3s ease, height 0.3s ease, border-radius 0.3s ease;
+}
+
+/* Responsive / Expanded Mode */
+.phone-frame.mode-expanded {
+  width: 100%;
+  max-width: 600px;
+  height: 90vh;
+  border-radius: 12px;
+  border-width: 4px;
+}
+
+.phone-notch {
+  height: 24px;
+  background: #181d27;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  z-index: 50;
+}
+
+.notch-speaker {
+  width: 50px;
+  height: 4px;
+  background: #2b3345;
+  border-radius: 2px;
+}
+
+.notch-camera {
+  width: 8px;
+  height: 8px;
+  background: #1b212f;
+  border: 1px solid #2b3345;
+  border-radius: 50%;
+}
+
+/* -------------------------------------------------------------------
+   PHONE SCREEN VIEWPORT
+   ------------------------------------------------------------------- */
+.screen {
+  flex: 1;
+  background: var(--screen-inner);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  border-bottom-left-radius: 34px;
+  border-bottom-right-radius: 34px;
+}
+
+.phone-frame.mode-expanded .screen {
+  border-radius: 0;
+}
+
+/* CRT Scanlines Overlay */
+.crt-enabled .screen::after {
+  content: " ";
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+  background-size: 100% 4px;
+  z-index: 99;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* -------------------------------------------------------------------
+   STATUS BAR
+   ------------------------------------------------------------------- */
+.status-bar {
+  background: #090e15;
+  height: 26px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 12px;
+  font-size: 8px;
+  color: #798ba5;
+  border-bottom: 2px solid #1c2636;
+  z-index: 30;
+}
+
+.status-title {
+  color: var(--accent-gold);
+  letter-spacing: 1px;
+}
+
+.nfc-indicator {
+  color: #4ade80;
+  margin-right: 6px;
+}
+
+/* Toast Banner */
+.toast-banner {
+  position: absolute;
+  top: 32px;
+  left: 10px;
+  right: 10px;
+  background: #1b2838;
+  border: 2px solid var(--accent-gold);
+  padding: 8px 12px;
+  font-size: 8px;
+  line-height: 1.4;
+  color: #ffffff;
+  z-index: 95;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.toast-banner.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-20px);
+}
+
+.toast-banner.toast-success { border-color: var(--accent-green); background: #132d1f; }
+.toast-banner.toast-error { border-color: var(--accent-red); background: #351515; }
+
+/* -------------------------------------------------------------------
+   VIEWS MANAGEMENT
+   ------------------------------------------------------------------- */
+.view {
+  flex: 1;
+  display: none;
+  flex-direction: column;
+  overflow-y: auto;
+  position: relative;
+  background: #101621;
+}
+
+.view.active {
+  display: flex;
+}
+
+.view-header {
+  background: #151d2c;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 3px solid #090e16;
+}
+
+.view-header h2 {
+  font-size: 10px;
+  color: #e2e8f0;
+  letter-spacing: 1px;
+}
+
+.back-btn, .header-action-btn {
+  background: #232d42;
+  border: 2px solid #3c4c6e;
+  color: #cad8f0;
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  padding: 5px 8px;
+  cursor: pointer;
+}
+
+.back-btn:hover, .header-action-btn:hover {
+  background: #313e5b;
+}
+
+.header-action-btn.danger {
+  border-color: var(--accent-red);
+  color: #ff8a80;
+}
+
+.hdr-spacer {
+  width: 40px;
+}
+
+/* -------------------------------------------------------------------
+   VIEW 1: MAIN MENU
+   ------------------------------------------------------------------- */
+.menu-hero {
+  padding: 30px 16px 20px;
+  text-align: center;
+  background: radial-gradient(circle at center, #1b263b 0%, #0d121c 100%);
+  border-bottom: 4px solid #090d13;
+}
+
+.logo-subtitle {
+  font-size: 7px;
+  color: #8da2c0;
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+}
+
+.logo-title {
+  font-size: 20px;
+  line-height: 1.2;
+  color: #ffffff;
+  text-shadow: 3px 3px 0px #090d13, -1px -1px 0px #3880ff;
+  letter-spacing: 1px;
+}
+
+.logo-title span {
+  color: var(--accent-gold);
+}
+
+.logo-version {
+  font-size: 7px;
+  color: #4ade80;
+  margin-top: 6px;
+}
+
+.hero-mascot {
+  width: 100px;
+  height: 100px;
+  margin: 16px auto 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.pixel-sprite {
+  width: 100%;
+  height: 100%;
+  shape-rendering: crispEdges;
+  filter: drop-shadow(0 6px 8px rgba(0,0,0,0.6));
+}
+
+.menu-buttons {
+  padding: 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pixel-btn {
+  background: #212c40;
+  color: #e2e8f0;
+  border: 3px solid #090d14;
+  box-shadow: inset -3px -3px 0px #131b28, inset 3px 3px 0px #3b4e72;
+  padding: 12px 14px;
+  font-family: var(--font-pixel);
+  font-size: 9px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.05s ease, background 0.15s ease;
+}
+
+.pixel-btn:active {
+  transform: translateY(2px);
+  box-shadow: inset 3px 3px 0px #131b28, inset -3px -3px 0px #3b4e72;
+}
+
+.pixel-btn .btn-icon {
+  font-size: 14px;
+  margin-right: 12px;
+}
+
+.pixel-btn .btn-label {
+  flex: 1;
+}
+
+.pixel-btn .btn-sub {
+  font-size: 7px;
+  color: #8da2c0;
+  display: block;
+  margin-top: 4px;
+}
+
+.pixel-btn .btn-badge {
+  background: var(--accent-gold);
+  color: #101621;
+  font-size: 8px;
+  padding: 3px 7px;
+  border: 2px solid #090d13;
+}
+
+.pixel-btn.btn-primary {
+  background: #1b4931;
+  box-shadow: inset -3px -3px 0px #0e291b, inset 3px 3px 0px #2e7a53;
+  color: #86efac;
+}
+
+.pixel-btn.btn-battle {
+  background: #5b2121;
+  box-shadow: inset -3px -3px 0px #351313, inset 3px 3px 0px #8b3232;
+  color: #fca5a5;
+}
+
+/* -------------------------------------------------------------------
+   VIEW 2: NFC SCANNER SIMULATOR
+   ------------------------------------------------------------------- */
+.scan-container {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.nfc-pad {
+  background: #151d2c;
+  border: 3px solid #090d14;
+  border-radius: 8px;
+  padding: 24px 16px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.pad-antenna {
+  width: 110px;
+  height: 110px;
+  margin: 0 auto 12px;
+  border: 3px dashed #3a4b6c;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.pad-antenna.scanning {
+  border-color: #4ade80;
+  animation: antenna-pulse 0.8s ease;
+}
+
+@keyframes antenna-pulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 rgba(74, 222, 128, 0.6); }
+  50% { transform: scale(1.08); box-shadow: 0 0 25px rgba(74, 222, 128, 0.8); }
+  100% { transform: scale(1); box-shadow: 0 0 0 rgba(74, 222, 128, 0); }
+}
+
+.pad-chip {
+  font-size: 8px;
+  color: #8ea7ce;
+  line-height: 1.4;
+}
+
+.pad-status {
+  font-size: 9px;
+  color: #4ade80;
+}
+
+.section-title {
+  font-size: 8px;
+  color: #93a5be;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.card-chip {
+  background: #1f283a;
+  border: 3px solid #090d14;
+  padding: 10px 8px;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--font-pixel);
+  box-shadow: inset -2px -2px 0px #111722, inset 2px 2px 0px #354563;
+  transition: transform 0.1s;
+}
+
+.card-chip:hover {
+  transform: translateY(-2px);
+}
+
+.card-chip.card-fire { border-left: 6px solid var(--type-fire); }
+.card-chip.card-water { border-left: 6px solid var(--type-water); }
+.card-chip.card-grass { border-left: 6px solid var(--type-grass); }
+.card-chip.card-electric { border-left: 6px solid var(--type-electric); }
+
+.chip-code {
+  font-size: 7px;
+  color: #7d90aa;
+  margin-bottom: 4px;
+}
+
+.chip-name {
+  font-size: 8px;
+  color: #ffffff;
+  margin-bottom: 6px;
+}
+
+.chip-tap {
+  font-size: 7px;
+  color: var(--accent-gold);
+}
+
+.manual-input-box {
+  background: #141b27;
+  border: 2px solid #28344c;
+  padding: 10px;
+}
+
+.manual-input-box label {
+  font-size: 7px;
+  color: #9cb0cb;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.input-row {
+  display: flex;
+  gap: 6px;
+}
+
+.input-row input {
+  flex: 1;
+  background: #0b0f16;
+  border: 2px solid #243046;
+  color: #ffffff;
+  padding: 8px;
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  outline: none;
+}
+
+.pixel-btn-small {
+  background: #25334c;
+  border: 2px solid #090d14;
+  color: #cad8f0;
+  font-family: var(--font-pixel);
+  font-size: 7px;
+  padding: 0 10px;
+  cursor: pointer;
+}
+
+.scan-history-box {
+  background: #0d121c;
+  border: 2px solid #1f283a;
+  padding: 10px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.log-list {
+  list-style: none;
+  font-size: 7px;
+  line-height: 1.6;
+}
+
+.log-item {
+  border-bottom: 1px solid #1a2233;
+  padding: 4px 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+.log-item.success { color: #86efac; }
+.log-item.duplicate { color: #fde047; }
+.log-item.error { color: #fca5a5; }
+
+.log-empty {
+  color: #5d6f88;
+  font-style: italic;
+}
+
+/* -------------------------------------------------------------------
+   VIEW 3: COLLECTION
+   ------------------------------------------------------------------- */
+.collection-summary {
+  background: #0d121a;
+  padding: 8px 12px;
+  font-size: 8px;
+  color: #8da2c0;
+  border-bottom: 2px solid #1e283a;
+}
+
+.collection-scroll {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.creature-card-row {
+  background: #17202f;
+  border: 3px solid #090d14;
+  box-shadow: inset -2px -2px 0px #0e141f, inset 2px 2px 0px #2e3c56;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.creature-card-row:hover {
+  transform: translateY(-2px);
+  background: #1e2a3e;
+}
+
+.card-sprite-thumb {
+  width: 48px;
+  height: 48px;
+  background: #0e141e;
+  border: 2px solid #090d14;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4px;
+}
+
+.card-info {
+  flex: 1;
+}
+
+.card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.card-name {
+  font-size: 9px;
+  color: #ffffff;
+}
+
+.card-lvl {
+  font-size: 7px;
+  color: var(--accent-gold);
+}
+
+.type-pill {
+  font-size: 6px;
+  padding: 2px 6px;
+  border: 1px solid #090d14;
+  color: #ffffff;
+}
+
+.type-pill.type-Fire { background: var(--type-fire); }
+.type-pill.type-Water { background: var(--type-water); }
+.type-pill.type-Grass { background: var(--type-grass); }
+.type-pill.type-Electric { background: var(--type-electric); }
+.type-pill.type-Normal { background: var(--type-normal); }
+
+.card-meta-nfc {
+  font-size: 6px;
+  color: #7d91ae;
+  margin-top: 4px;
+}
+
+.empty-collection-state {
+  text-align: center;
+  padding: 40px 16px;
+  color: #798da9;
+}
+
+.empty-collection-state p {
+  font-size: 8px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+/* -------------------------------------------------------------------
+   VIEW 4: BATTLE ARENA
+   ------------------------------------------------------------------- */
+.battle-setup-view {
+  padding: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.setup-box {
+  background: #141b27;
+  border: 3px solid #090d14;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.setup-box h3 {
+  font-size: 10px;
+  color: var(--accent-gold);
+  text-align: center;
+}
+
+.setup-sub {
+  font-size: 8px;
+  color: #8da2c0;
+  line-height: 1.4;
+}
+
+.roster-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.roster-item {
+  background: #1b2434;
+  border: 2px solid #2f3e58;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 8px;
+}
+
+.roster-item.selected {
+  border-color: var(--accent-gold);
+  background: #2b3952;
+}
+
+.ai-opponent-select {
+  margin-top: 8px;
+}
+
+.ai-opponent-select label {
+  font-size: 7px;
+  color: #9cb0cb;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.ai-opponent-select select {
+  width: 100%;
+  background: #0d121c;
+  color: #ffffff;
+  border: 2px solid #2f3e58;
+  padding: 8px;
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  outline: none;
+}
+
+/* Battle Ground Layout */
+.battle-ground {
+  flex: 1;
+  background: radial-gradient(circle at 50% 40%, #1a2638 0%, #0d131d 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 12px;
+  position: relative;
+}
+
+.battle-ground.hidden {
+  display: none;
+}
+
+.combat-unit {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.opponent-unit {
+  justify-content: space-between;
+}
+
+.player-unit {
+  justify-content: space-between;
+}
+
+.hud-box {
+  background: #0c121b;
+  border: 3px solid #090d14;
+  box-shadow: inset -2px -2px 0px #06090e, inset 2px 2px 0px #1e2838;
+  padding: 8px 10px;
+  width: 170px;
+}
+
+.hud-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 8px;
+  margin-bottom: 6px;
+}
+
+.unit-name { color: #ffffff; }
+.unit-lvl { color: var(--accent-gold); font-size: 7px; }
+
+.hp-bar-outer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hp-label {
+  font-size: 7px;
+  color: #f1c40f;
+}
+
+.hp-bar-bg {
+  flex: 1;
+  height: 8px;
+  background: #1b212c;
+  border: 2px solid #090d14;
+}
+
+.hp-bar-fill {
+  height: 100%;
+  background: #2ecc71;
+  transition: width 0.4s ease, background-color 0.4s ease;
+}
+
+.hp-bar-fill.warn { background: #f39c12; }
+.hp-bar-fill.danger { background: #e74c3c; }
+
+.hp-numbers {
+  text-align: right;
+  font-size: 7px;
+  color: #8da2c0;
+  margin-top: 4px;
+}
+
+.sprite-platform {
+  width: 110px;
+  height: 110px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.sprite-holder {
+  width: 80px;
+  height: 80px;
+  transition: transform 0.2s;
+}
+
+.platform-shadow {
+  width: 70px;
+  height: 12px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 50%;
+  position: absolute;
+  bottom: 8px;
+  z-index: 0;
+}
+
+/* Attack Animations */
+.sprite-holder.anim-shake {
+  animation: hit-shake 0.3s ease;
+}
+
+@keyframes hit-shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-8px) scale(0.95); filter: brightness(1.8); }
+  50% { transform: translateX(8px); }
+  75% { transform: translateX(-4px); }
+  100% { transform: translateX(0); filter: brightness(1); }
+}
+
+.sprite-holder.anim-faint {
+  animation: faint-fall 0.8s forwards;
+}
+
+@keyframes faint-fall {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(30px); opacity: 0; }
+}
+
+/* Battle Controls & Dialog */
+.battle-controls {
+  background: #090e16;
+  border: 3px solid #1f2a3c;
+  border-radius: 4px;
+  padding: 10px;
+  margin-top: 8px;
+}
+
+.battle-dialogue {
+  background: #111722;
+  border: 2px solid #090d14;
+  padding: 8px 10px;
+  font-size: 8px;
+  line-height: 1.5;
+  color: #f8fafc;
+  min-height: 38px;
+  margin-bottom: 8px;
+}
+
+.moves-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.move-btn {
+  background: #1b2434;
+  border: 2px solid #090d14;
+  box-shadow: inset -2px -2px 0px #0e141f, inset 2px 2px 0px #2e3c56;
+  padding: 8px 6px;
+  font-family: var(--font-pixel);
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.05s;
+}
+
+.move-btn:hover:not(:disabled) {
+  background: #25334a;
+}
+
+.move-btn:active:not(:disabled) {
+  transform: translateY(2px);
+}
+
+.move-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.move-btn-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.move-btn-name {
+  font-size: 7px;
+  color: #ffffff;
+}
+
+.move-btn-pwr {
+  font-size: 6px;
+  color: var(--accent-gold);
+}
+
+/* -------------------------------------------------------------------
+   MODAL OVERLAYS (RESULTS & CREATURE DETAILS)
+   ------------------------------------------------------------------- */
+.modal-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(4, 7, 12, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  z-index: 90;
+}
+
+.modal-overlay.hidden {
+  display: none;
+}
+
+.modal-box {
+  background: #161e2c;
+  border: 4px solid #090d14;
+  box-shadow: inset -3px -3px 0px #0b0f16, inset 3px 3px 0px #31405a;
+  width: 100%;
+  max-width: 340px;
+  padding: 16px;
+}
+
+.result-box {
+  text-align: center;
+}
+
+.result-title {
+  font-size: 16px;
+  color: var(--accent-gold);
+  margin-bottom: 6px;
+}
+
+.result-subtitle {
+  font-size: 8px;
+  color: #cbd5e1;
+  margin-bottom: 12px;
+}
+
+.result-stats {
+  background: #0d121c;
+  border: 2px solid #090d14;
+  padding: 10px;
+  font-size: 7px;
+  line-height: 1.6;
+  color: #8da2c0;
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Detail Modal Box */
+.detail-modal-box {
+  max-height: 90%;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #233045;
+}
+
+.modal-header h3 {
+  font-size: 10px;
+  color: #ffffff;
+}
+
+.close-x {
+  background: #25334c;
+  border: 2px solid #090d14;
+  color: #ffffff;
+  padding: 2px 6px;
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.detail-body {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.detail-sprite-box {
+  width: 70px;
+  height: 70px;
+  background: #0a0e16;
+  border: 2px solid #090d14;
+  padding: 6px;
+}
+
+.detail-info {
+  flex: 1;
+  font-size: 7px;
+  line-height: 1.8;
+}
+
+.info-row code {
+  background: #0d121c;
+  padding: 1px 4px;
+  color: #4ade80;
+}
+
+.nfc-badge {
+  background: #1b382b;
+  color: #86efac;
+  padding: 2px 4px;
+  border: 1px solid #2d6a4f;
+}
+
+.stat-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 7px;
+}
+
+.stat-lbl { width: 30px; color: #8da2c0; }
+.stat-val { width: 20px; text-align: right; color: #ffffff; }
+
+.stat-bar-bg {
+  flex: 1;
+  height: 6px;
+  background: #0d121c;
+  border: 1px solid #090d14;
+}
+
+.stat-bar-fill {
+  height: 100%;
+  background: var(--accent-gold);
+}
+
+.detail-moves-section {
+  margin-top: 12px;
+}
+
+.detail-moves-section h4 {
+  font-size: 8px;
+  color: #8da2c0;
+  margin-bottom: 6px;
+}
+
+.detail-moves-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-move-pill {
+  background: #0d121a;
+  border: 1px solid #222e42;
+  padding: 6px 8px;
+  font-size: 7px;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* -------------------------------------------------------------------
+   VIEW 5: BATTLE RECORDS (HISTORY)
+   ------------------------------------------------------------------- */
+.history-scroll {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.history-card {
+  background: #151d2c;
+  border: 3px solid #090d14;
+  padding: 10px;
+}
+
+.history-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: 7px;
+}
+
+.history-outcome {
+  padding: 2px 6px;
+  border: 1px solid #090d14;
+}
+
+.history-outcome.Victory { background: #133924; color: #86efac; }
+.history-outcome.Defeat { background: #3b1818; color: #fca5a5; }
+.history-outcome.Aborted { background: #3c3214; color: #fde047; }
+
+.history-matchup {
+  font-size: 8px;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.history-meta {
+  font-size: 6px;
+  color: #7d90aa;
+}
+
+/* -------------------------------------------------------------------
+   VIEW 6: SETTINGS
+   ------------------------------------------------------------------- */
+.settings-content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.setting-group {
+  background: #141b27;
+  border: 2px solid #233045;
+  padding: 12px;
+}
+
+.setting-group h3 {
+  font-size: 8px;
+  color: var(--accent-gold);
+  margin-bottom: 10px;
+}
+
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 7px;
+  padding: 6px 0;
+  border-bottom: 1px solid #1c2738;
+}
+
+.toggle-btn {
+  background: #232d42;
+  border: 1px solid #3c4c6e;
+  color: #cad8f0;
+  font-family: var(--font-pixel);
+  font-size: 7px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.toggle-btn.active {
+  background: #194326;
+  border-color: #2e7a53;
+  color: #86efac;
+}
+
+.setting-note {
+  font-size: 6px;
+  color: #798ea9;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+
+.data-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn-danger {
+  background: #4c1d1d;
+  color: #fca5a5;
+  border-color: #7f1d1d;
+}
+
+.json-box {
+  background: #090d14;
+  border: 2px solid #32435e;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.json-box.hidden { display: none; }
+
+.json-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 7px;
+  margin-bottom: 8px;
+  color: var(--accent-gold);
+}
+
+.json-box pre {
+  font-family: monospace;
+  font-size: 8px;
+  color: #a5d6a7;
+  max-height: 180px;
+  overflow: auto;
+  user-select: text;
+}
+
+</style>
+</head>
+<body class="theme-retro crt-enabled">
+
+  <!-- Desktop Control Bar -->
+  <aside class="desktop-bar">
+    <div class="bar-brand">
+      <span class="pixel-dot"></span>
+      <strong>MONSTERLINK WEB PROTOTYPE</strong>
+      <span class="tag">Phase 0.5 Preview</span>
+    </div>
+    <div class="bar-actions">
+      <button id="btn-toggle-frame" class="bar-btn" title="Toggle between smartphone mockup and responsive view">📱 View: Phone Frame</button>
+      <button id="btn-toggle-crt" class="bar-btn active" title="Toggle CRT scanline raster effect">📺 CRT Effect: ON</button>
+      <button id="btn-toggle-sound" class="bar-btn active" title="Toggle 8-bit sound effects">🔊 Sound: ON</button>
+      <button id="btn-quick-seed" class="bar-btn bar-btn-accent" title="Seed 2 initial sample creatures for testing">⚡ Seed Demo Creatures</button>
+    </div>
+  </aside>
+
+  <!-- Main Simulator Container -->
+  <main class="device-wrapper">
+    <div class="phone-frame" id="phone-frame">
+      
+      <!-- Top Speaker & Camera Notch -->
+      <div class="phone-notch">
+        <div class="notch-speaker"></div>
+        <div class="notch-camera"></div>
+      </div>
+
+      <!-- Phone Screen Viewport -->
+      <div class="screen" id="app-screen">
+        
+        <!-- Retro Status Bar -->
+        <header class="status-bar">
+          <span class="status-time" id="clock-display">12:00</span>
+          <span class="status-title">MONSTERLINK</span>
+          <div class="status-icons">
+            <span class="nfc-indicator" title="NFC Prototype Active">📡 NFC</span>
+            <span class="battery-icon">▮▮▮</span>
+          </div>
+        </header>
+
+        <!-- Notification Toast Banner -->
+        <div id="toast-banner" class="toast-banner hidden">
+          <span id="toast-icon">ℹ️</span>
+          <span id="toast-text">Message goes here</span>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 1: MAIN MENU                          -->
+        <!-- ========================================== -->
+        <section id="view-menu" class="view active">
+          <div class="menu-hero">
+            <div class="logo-box">
+              <div class="logo-subtitle">PHYSICAL NFC x RETRO 2D</div>
+              <h1 class="logo-title">MONSTER<br><span>LINK</span></h1>
+              <div class="logo-version">PROTOTYPE V0.5</div>
+            </div>
+            <div class="hero-mascot" id="menu-mascot-container">
+              <!-- Animated Pixel Mascot injected here -->
+            </div>
+          </div>
+
+          <nav class="menu-buttons">
+            <button class="pixel-btn btn-primary" data-nav="view-scan">
+              <span class="btn-icon">📡</span>
+              <span class="btn-label">SCAN NFC CARD</span>
+              <span class="btn-sub">Add creature with card</span>
+            </button>
+            <button class="pixel-btn" data-nav="view-collection">
+              <span class="btn-icon">📦</span>
+              <span class="btn-label">MY COLLECTION</span>
+              <span class="btn-badge" id="menu-collection-count">0</span>
+            </button>
+            <button class="pixel-btn btn-battle" data-nav="view-battle">
+              <span class="btn-icon">⚔️</span>
+              <span class="btn-label">BATTLE ARENA</span>
+              <span class="btn-sub">Turn-based combat</span>
+            </button>
+            <button class="pixel-btn" data-nav="view-history">
+              <span class="btn-icon">📜</span>
+              <span class="btn-label">BATTLE RECORDS</span>
+              <span class="btn-sub">Past match history</span>
+            </button>
+            <button class="pixel-btn" data-nav="view-settings">
+              <span class="btn-icon">⚙️</span>
+              <span class="btn-label">SETTINGS & DATA</span>
+            </button>
+          </nav>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- VIEW 2: NFC SCANNER SIMULATOR (STAGE A)    -->
+        <!-- ========================================== -->
+        <section id="view-scan" class="view">
+          <div class="view-header">
+            <button class="back-btn" data-nav="view-menu">◀ MENU</button>
+            <h2>NFC CARD SCANNER</h2>
+            <div class="hdr-spacer"></div>
+          </div>
+
+          <div class="scan-container">
+            <!-- Simulated NFC Touch Pad -->
+            <div class="nfc-pad" id="nfc-pad">
+              <div class="pad-antenna">
+                <div class="wave wave-1"></div>
+                <div class="wave wave-2"></div>
+                <div class="wave wave-3"></div>
+                <div class="pad-chip">📡 TAP CARD HERE</div>
+              </div>
+              <div class="pad-status" id="pad-status-text">Ready for NFC Card Tap</div>
+            </div>
+
+            <!-- Test Physical Cards Rack -->
+            <div class="test-cards-section">
+              <div class="section-title">TEST NFC CARDS (STAGE A SIMULATION):</div>
+              <div class="cards-grid">
+                <button class="card-chip card-fire" data-code="ML-CARD-IGNI-01">
+                  <div class="chip-code">ML-CARD-IGNI-01</div>
+                  <div class="chip-name">Ignisaur (Fire)</div>
+                  <div class="chip-tap">TAP TO SCAN</div>
+                </button>
+                <button class="card-chip card-water" data-code="ML-CARD-AQUA-02">
+                  <div class="chip-code">ML-CARD-AQUA-02</div>
+                  <div class="chip-name">Aquabite (Water)</div>
+                  <div class="chip-tap">TAP TO SCAN</div>
+                </button>
+                <button class="card-chip card-grass" data-code="ML-CARD-FLOR-03">
+                  <div class="chip-code">ML-CARD-FLOR-03</div>
+                  <div class="chip-name">Floraslug (Grass)</div>
+                  <div class="chip-tap">TAP TO SCAN</div>
+                </button>
+                <button class="card-chip card-electric" data-code="ML-CARD-VOLT-04">
+                  <div class="chip-code">ML-CARD-VOLT-04</div>
+                  <div class="chip-name">Voltkit (Electric)</div>
+                  <div class="chip-tap">TAP TO SCAN</div>
+                </button>
+              </div>
+            </div>
+
+            <!-- Manual / Custom Code Input for Negative Testing -->
+            <div class="manual-input-box">
+              <label for="input-custom-nfc">TEST CUSTOM / MALFORMED CODE:</label>
+              <div class="input-row">
+                <input type="text" id="input-custom-nfc" placeholder="e.g. ML-CARD-UNKNOWN-99" autocomplete="off" />
+                <button id="btn-scan-custom" class="pixel-btn-small">SCAN CODE</button>
+              </div>
+            </div>
+
+            <!-- Recent Scan Attempts Log -->
+            <div class="scan-history-box">
+              <div class="section-title">SESSION SCAN LOG:</div>
+              <ul id="scan-log-list" class="log-list">
+                <li class="log-empty">No cards scanned in this session yet.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- VIEW 3: CREATURE COLLECTION                -->
+        <!-- ========================================== -->
+        <section id="view-collection" class="view">
+          <div class="view-header">
+            <button class="back-btn" data-nav="view-menu">◀ MENU</button>
+            <h2>COLLECTION</h2>
+            <button class="header-action-btn" data-nav="view-scan">+ SCAN</button>
+          </div>
+
+          <div class="collection-summary">
+            <span>REGISTERED CREATURES: <strong id="coll-count-text">0</strong></span>
+          </div>
+
+          <div class="collection-scroll" id="collection-grid">
+            <!-- Creature cards rendered here -->
+          </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- VIEW 4: TURN-BASED BATTLE ARENA            -->
+        <!-- ========================================== -->
+        <section id="view-battle" class="view">
+          <div class="view-header">
+            <button class="back-btn" id="btn-battle-quit">◀ FORFEIT</button>
+            <h2>BATTLE ARENA</h2>
+            <div class="hdr-spacer"></div>
+          </div>
+
+          <!-- Pre-Battle Creature Picker Overlay -->
+          <div id="battle-pre-modal" class="battle-setup-view">
+            <div class="setup-box">
+              <h3>CHOOSE YOUR CREATURE</h3>
+              <p class="setup-sub">Select one of your registered creatures to enter combat:</p>
+              <div id="battle-roster-select" class="roster-grid">
+                <!-- Roster selectable cards -->
+              </div>
+              <div class="ai-opponent-select">
+                <label>OPPONENT CREATURE:</label>
+                <select id="select-ai-opponent">
+                  <option value="species_aquabite">Aquabite (Water / Defensive)</option>
+                  <option value="species_ignisaur">Ignisaur (Fire / Aggressive)</option>
+                  <option value="species_floraslug">Floraslug (Grass / High HP)</option>
+                  <option value="species_voltkit">Voltkit (Electric / High Speed)</option>
+                </select>
+              </div>
+              <button id="btn-start-battle" class="pixel-btn btn-battle" disabled>START BATTLE</button>
+            </div>
+          </div>
+
+          <!-- Active Battle Ground -->
+          <div id="battle-active-ground" class="battle-ground hidden">
+            
+            <!-- Opponent Platform (Top Right) -->
+            <div class="combat-unit opponent-unit">
+              <div class="hud-box">
+                <div class="hud-top">
+                  <span class="unit-name" id="opp-name">Aquabite</span>
+                  <span class="unit-lvl" id="opp-lvl">Lv.5</span>
+                </div>
+                <div class="hp-bar-outer">
+                  <span class="hp-label">HP</span>
+                  <div class="hp-bar-bg">
+                    <div class="hp-bar-fill" id="opp-hp-bar" style="width: 100%;"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="sprite-platform opp-platform">
+                <div class="sprite-holder" id="opp-sprite-holder">
+                  <!-- Opponent SVG Sprite -->
+                </div>
+                <div class="platform-shadow"></div>
+              </div>
+            </div>
+
+            <!-- Player Platform (Bottom Left) -->
+            <div class="combat-unit player-unit">
+              <div class="sprite-platform player-platform">
+                <div class="sprite-holder" id="player-sprite-holder">
+                  <!-- Player SVG Sprite -->
+                </div>
+                <div class="platform-shadow"></div>
+              </div>
+              <div class="hud-box">
+                <div class="hud-top">
+                  <span class="unit-name" id="player-name">Ignisaur</span>
+                  <span class="unit-lvl" id="player-lvl">Lv.5</span>
+                </div>
+                <div class="hp-bar-outer">
+                  <span class="hp-label">HP</span>
+                  <div class="hp-bar-bg">
+                    <div class="hp-bar-fill" id="player-hp-bar" style="width: 100%;"></div>
+                  </div>
+                </div>
+                <div class="hp-numbers" id="player-hp-numbers">24 / 24</div>
+              </div>
+            </div>
+
+            <!-- Combat Narration Dialog & Move Command Box -->
+            <div class="battle-controls">
+              <!-- Narration Log Banner -->
+              <div class="battle-dialogue" id="battle-dialogue-text">
+                What will your creature do?
+              </div>
+
+              <!-- 4-Move Command Grid -->
+              <div class="moves-grid" id="battle-moves-grid">
+                <!-- Move 1 to 4 buttons -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Battle Outcome Modal -->
+          <div id="battle-result-modal" class="modal-overlay hidden">
+            <div class="modal-box result-box">
+              <div class="result-title" id="result-title">VICTORY!</div>
+              <div class="result-subtitle" id="result-subtitle">You won the battle!</div>
+              <div class="result-stats" id="result-stats">
+                <!-- Turn count, damage, etc. -->
+              </div>
+              <div class="modal-actions">
+                <button id="btn-result-rematch" class="pixel-btn btn-primary">BATTLE AGAIN</button>
+                <button id="btn-result-menu" class="pixel-btn" data-nav="view-menu">RETURN TO MENU</button>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ========================================== -->
+        <!-- VIEW 5: BATTLE RECORDS                     -->
+        <!-- ========================================== -->
+        <section id="view-history" class="view">
+          <div class="view-header">
+            <button class="back-btn" data-nav="view-menu">◀ MENU</button>
+            <h2>BATTLE RECORDS</h2>
+            <button class="header-action-btn danger" id="btn-clear-history">CLEAR</button>
+          </div>
+
+          <div class="history-scroll" id="history-list">
+            <!-- Battle records rendered here -->
+          </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- VIEW 6: SETTINGS & PERSISTENCE INSPECTOR   -->
+        <!-- ========================================== -->
+        <section id="view-settings" class="view">
+          <div class="view-header">
+            <button class="back-btn" data-nav="view-menu">◀ MENU</button>
+            <h2>SETTINGS & DATA</h2>
+            <div class="hdr-spacer"></div>
+          </div>
+
+          <div class="settings-content">
+            <div class="setting-group">
+              <h3>AUDIO & DISPLAY</h3>
+              <div class="setting-row">
+                <span>8-Bit Synthesizer Audio</span>
+                <button id="setting-sound-btn" class="toggle-btn active">ENABLED</button>
+              </div>
+              <div class="setting-row">
+                <span>CRT Scanlines Effect</span>
+                <button id="setting-crt-btn" class="toggle-btn active">ENABLED</button>
+              </div>
+            </div>
+
+            <div class="setting-group">
+              <h3>LOCAL DATA PERSISTENCE</h3>
+              <p class="setting-note">Data saved to localStorage under schema v1 (matches C# JsonStorageService)</p>
+              <div class="data-actions">
+                <button id="btn-inspect-json" class="pixel-btn">INSPECT RAW JSON</button>
+                <button id="btn-export-json" class="pixel-btn">DOWNLOAD BACKUP</button>
+                <button id="btn-reset-data" class="pixel-btn btn-danger">WIPE ALL STORAGE</button>
+              </div>
+            </div>
+
+            <!-- JSON Payload Viewer Modal -->
+            <div id="json-viewer-box" class="json-box hidden">
+              <div class="json-header">
+                <strong>PERSISTENT STORAGE DUMP:</strong>
+                <button id="btn-close-json" class="close-x">✕</button>
+              </div>
+              <pre id="json-pre-content"></pre>
+            </div>
+          </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- CREATURE DETAILS MODAL (COLLECTION)       -->
+        <!-- ========================================== -->
+        <div id="creature-detail-modal" class="modal-overlay hidden">
+          <div class="modal-box detail-modal-box">
+            <div class="modal-header">
+              <span class="detail-type-badge" id="modal-type-badge">FIRE</span>
+              <h3 id="modal-creature-name">Ignisaur</h3>
+              <button class="close-x" id="btn-close-detail">✕</button>
+            </div>
+            <div class="detail-body">
+              <div class="detail-sprite-box" id="modal-sprite-box"></div>
+              <div class="detail-info">
+                <div class="info-row">
+                  <span>Species ID:</span>
+                  <strong id="modal-species-id">species_ignisaur</strong>
+                </div>
+                <div class="info-row">
+                  <span>Instance ID:</span>
+                  <code id="modal-instance-id">inst_xxx</code>
+                </div>
+                <div class="info-row">
+                  <span>Assigned NFC Card:</span>
+                  <span class="nfc-badge" id="modal-nfc-code">ML-CARD-IGNI-01</span>
+                </div>
+                <div class="info-row">
+                  <span>Level:</span>
+                  <strong id="modal-level">Lv. 5</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="detail-stats-section">
+              <h4>COMBAT STATS</h4>
+              <div class="stat-bars">
+                <div class="stat-item">
+                  <span class="stat-lbl">HP:</span>
+                  <span class="stat-val" id="modal-stat-hp">24</span>
+                  <div class="stat-bar-bg"><div class="stat-bar-fill" id="modal-bar-hp" style="width: 50%;"></div></div>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-lbl">ATK:</span>
+                  <span class="stat-val" id="modal-stat-atk">14</span>
+                  <div class="stat-bar-bg"><div class="stat-bar-fill" id="modal-bar-atk" style="width: 50%;"></div></div>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-lbl">DEF:</span>
+                  <span class="stat-val" id="modal-stat-def">12</span>
+                  <div class="stat-bar-bg"><div class="stat-bar-fill" id="modal-bar-def" style="width: 50%;"></div></div>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-lbl">SPD:</span>
+                  <span class="stat-val" id="modal-stat-spd">15</span>
+                  <div class="stat-bar-bg"><div class="stat-bar-fill" id="modal-bar-spd" style="width: 50%;"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="detail-moves-section">
+              <h4>KNOWN MOVES</h4>
+              <div class="detail-moves-list" id="modal-moves-list">
+                <!-- Move pills -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div> <!-- /screen -->
+    </div> <!-- /phone-frame -->
+  </main>
+
+  <script src="bundle.js"></script>
+</body>
+</html>

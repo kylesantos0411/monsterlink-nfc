@@ -19,6 +19,19 @@
 
 ---
 
+## Phase 0.5: Interactive Web Prototype & Visual UX Verification
+
+| Test ID | Description | Test Steps | Expected Result | Actual Result | Status |
+|---|---|---|---|---|---|
+| **TC-WEB-001** | Creatures & Move catalog validation | Import and inspect `creatures.js` in Node | 4 species, 10 moves, and type chart load without errors | Loaded species and verified stats and move definitions | **PASSED** |
+| **TC-WEB-002** | Deterministic damage calculation verification | Execute `calculateDamage` with known stat pairs | Base damage, level factor, and type multiplier produce exact integer | Ignisaur vs Aquabite evaluated to exactly 2 damage (0.5x weak) | **PASSED** |
+| **TC-WEB-003** | End-to-end combat simulation in engine | Execute multi-turn battle loop until 0 HP | Turn loop executes, faster creature acts, faint ends battle, record produced | 3-turn battle concluded with Floraslug faint and record generation | **PASSED** |
+| **TC-WEB-004** | Standalone bundle generation | Run `build-standalone.js` | Generates self-contained single-file HTML runnable via `file://` | `bundle.js` and `standalone.html` generated cleanly | **PASSED** |
+| **TC-WEB-005** | NFC scan simulation & duplicate detection | Click card chip on scanner, verify enrollment and re-click | First tap registers creature; second tap rejects duplicate | Verified in app controller logic | **PASSED** |
+| **TC-WEB-006** | Local persistent storage round-trip | Save and load collection and battle record in localStorage | Data persists with schema v1 wrapper and recovers intact | Verified in storage module logic | **PASSED** |
+
+---
+
 ## Phase 1: Creature Models, Persistence & Collection UI
 
 | Test ID | Description | Test Steps | Expected Result | Actual Result | Status |
