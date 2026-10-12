@@ -13,6 +13,8 @@ export interface PokemonSprites {
   frontDefault: string | null;
   frontShiny: string | null;
   officialArtwork: string | null;
+  backDefault?: string | null;
+  backShiny?: string | null;
 }
 
 export interface PokemonSpeciesRecord {

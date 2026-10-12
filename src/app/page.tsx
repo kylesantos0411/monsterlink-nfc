@@ -104,6 +104,8 @@ export default function HomePage() {
   const [oppAnimShake, setOppAnimShake] = useState<boolean>(false);
   const [playerAnimFaint, setPlayerAnimFaint] = useState<boolean>(false);
   const [oppAnimFaint, setOppAnimFaint] = useState<boolean>(false);
+  const [playerAnimLunge, setPlayerAnimLunge] = useState<boolean>(false);
+  const [oppAnimLunge, setOppAnimLunge] = useState<boolean>(false);
   const [battleResultModal, setBattleResultModal] = useState<{
     victory: boolean;
     turns: number;
@@ -553,6 +555,8 @@ export default function HomePage() {
     setBattleDialogue(`A wild Rival ${opponentMonster.nickname} appeared! What will ${playerMonster.nickname} do?`);
     setPlayerAnimShake(false);
     setOppAnimShake(false);
+    setPlayerAnimLunge(false);
+    setOppAnimLunge(false);
     setPlayerAnimFaint(false);
     setOppAnimFaint(false);
     setBattleResultModal(null);
@@ -568,21 +572,33 @@ export default function HomePage() {
 
     const turnResult = activeEngine.executeTurn(moveId);
 
-    // Play attack hit sound and platform animation
-    setOppAnimShake(true);
-    Sound.playHit();
-    setTimeout(() => setOppAnimShake(false), 400);
+    // 1. Player lunges forward toward opponent to execute attack
+    setPlayerAnimLunge(true);
+    setTimeout(() => setPlayerAnimLunge(false), 280);
+
+    // 2. Opponent shakes from player attack impact
+    setTimeout(() => {
+      setOppAnimShake(true);
+      Sound.playHit();
+      setTimeout(() => setOppAnimShake(false), 350);
+    }, 150);
 
     // Step narration sequence
     const narrationTexts = turnResult.steps.map(s => s.narrationLog);
     setBattleDialogue(narrationTexts.join('\n'));
 
-    // Check if player took hit
+    // 3. If opponent counter-attacks, opponent lunges and player takes hit
     if (turnResult.steps.some(s => s.actor === 'opponent' && s.damageDealt > 0)) {
       setTimeout(() => {
-        setPlayerAnimShake(true);
-        setTimeout(() => setPlayerAnimShake(false), 400);
-      }, 500);
+        setOppAnimLunge(true);
+        setTimeout(() => setOppAnimLunge(false), 280);
+
+        setTimeout(() => {
+          setPlayerAnimShake(true);
+          Sound.playHit();
+          setTimeout(() => setPlayerAnimShake(false), 350);
+        }, 150);
+      }, 550);
     }
 
     if (turnResult.isBattleOver) {
@@ -686,7 +702,7 @@ export default function HomePage() {
             width: customSize,
             height: customSize,
             objectFit: 'contain',
-            imageRendering: 'auto',
+            imageRendering: 'pixelated',
             filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.5))',
           }}
           loading="lazy"
@@ -702,6 +718,68 @@ export default function HomePage() {
     return (
       <div 
         style={{ width: customSize, height: customSize }}
+        dangerouslySetInnerHTML={{ __html: getSpriteSvg(species?.spriteKey) }}
+      />
+    );
+  }
+
+  // Helper: Render battle creature visual with perspective and back sprite support
+  function renderBattleCreatureVisual(speciesId: string, isPlayer: boolean, customSize = '100%') {
+    const poke = getPokemonByName(speciesId);
+    if (poke) {
+      // 1. If player monster and custom back sprite exists, render authentic back view!
+      if (isPlayer && poke.sprites.backDefault) {
+        return (
+          <img
+            src={poke.sprites.backDefault}
+            alt={`${poke.displayName} (Back View)`}
+            className="battle-sprite player-back-sprite"
+            style={{
+              width: customSize,
+              height: customSize,
+              objectFit: 'contain',
+              imageRendering: 'pixelated',
+              filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.6))',
+            }}
+          />
+        );
+      }
+
+      // 2. Otherwise render front sprite with arena-facing orientation:
+      // Player faces up-right (toward enemy platform).
+      // Opponent faces down-left (toward player platform).
+      const spriteUrl = poke.sprites.officialArtwork || poke.sprites.frontDefault || '/monsters/monster_001.png';
+      
+      // Determine orientation flip:
+      // In the monster sheet, Sparki (#4) naturally faces left, while others (1, 2, 3, etc.) face right.
+      const naturallyFacesLeft = poke.pokedexNumber === 4;
+      const shouldFlip = isPlayer ? naturallyFacesLeft : !naturallyFacesLeft;
+
+      return (
+        <img
+          src={spriteUrl}
+          alt={poke.displayName}
+          className={`battle-sprite ${isPlayer ? 'player-front-sprite' : 'opp-front-sprite'}`}
+          style={{
+            width: customSize,
+            height: customSize,
+            objectFit: 'contain',
+            imageRendering: 'pixelated',
+            transform: shouldFlip ? 'scaleX(-1)' : 'none',
+            filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.6))',
+          }}
+        />
+      );
+    }
+
+    const species = SPECIES_CATALOG[speciesId];
+    return (
+      <div 
+        style={{ 
+          width: customSize, 
+          height: customSize,
+          transform: !isPlayer ? 'scaleX(-1)' : 'none'
+        }}
         dangerouslySetInnerHTML={{ __html: getSpriteSvg(species?.spriteKey) }}
       />
     );
@@ -1468,11 +1546,11 @@ export default function HomePage() {
                     </div>
                     <div className="sprite-platform opp-platform">
                       <div 
-                        className={`sprite-holder ${oppAnimShake ? 'anim-shake' : ''} ${oppAnimFaint ? 'anim-faint' : ''}`} 
+                        className={`sprite-holder ${oppAnimShake ? 'anim-shake' : ''} ${oppAnimFaint ? 'anim-faint' : ''} ${oppAnimLunge ? 'anim-lunge-opp' : ''}`} 
                         id="opp-sprite-holder"
                         style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                       >
-                        {renderCreatureVisual(activeEngine.opponent.speciesId, '100%')}
+                        {renderBattleCreatureVisual(activeEngine.opponent.speciesId, false, '100%')}
                       </div>
                       <div className="platform-shadow"></div>
                     </div>
@@ -1482,11 +1560,11 @@ export default function HomePage() {
                   <div className="combat-unit player-unit">
                     <div className="sprite-platform player-platform">
                       <div 
-                        className={`sprite-holder ${playerAnimShake ? 'anim-shake' : ''} ${playerAnimFaint ? 'anim-faint' : ''}`} 
+                        className={`sprite-holder ${playerAnimShake ? 'anim-shake' : ''} ${playerAnimFaint ? 'anim-faint' : ''} ${playerAnimLunge ? 'anim-lunge-player' : ''}`} 
                         id="player-sprite-holder"
                         style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                       >
-                        {renderCreatureVisual(activeEngine.player.speciesId, '100%')}
+                        {renderBattleCreatureVisual(activeEngine.player.speciesId, true, '100%')}
                       </div>
                       <div className="platform-shadow"></div>
                     </div>

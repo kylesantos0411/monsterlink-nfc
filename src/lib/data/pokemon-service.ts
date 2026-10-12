@@ -59,6 +59,21 @@ export function getPokemonArtworkUrl(pokedexNumberOrName: number | string): stri
 export const getMonsterArtworkUrl = getPokemonArtworkUrl;
 
 /**
+ * Get canonical back sprite URL for monster in battle (player perspective)
+ */
+export function getPokemonBackSpriteUrl(pokedexNumberOrName: number | string): string | null {
+  const p = typeof pokedexNumberOrName === 'number'
+    ? getPokemonByPokedexNumber(pokedexNumberOrName)
+    : getPokemonByName(pokedexNumberOrName);
+
+  if (p && p.sprites?.backDefault) {
+    return p.sprites.backDefault;
+  }
+  return null;
+}
+export const getMonsterBackSpriteUrl = getPokemonBackSpriteUrl;
+
+/**
  * Returns list of Monster records matching pagination/filtering
  */
 export function queryPokemonCatalog(page = 1, pageSize = 20, typeFilter?: string) {

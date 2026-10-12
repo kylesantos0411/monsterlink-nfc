@@ -1255,6 +1255,28 @@ body {
   transition: transform 0.2s;
 }
 
+.player-platform .sprite-holder {
+  width: 92px;
+  height: 92px;
+  animation: player-battle-idle 2.4s ease-in-out infinite;
+}
+
+.opp-platform .sprite-holder {
+  width: 76px;
+  height: 76px;
+  animation: opp-battle-idle 2.4s ease-in-out 0.8s infinite;
+}
+
+@keyframes player-battle-idle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes opp-battle-idle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
 .platform-shadow {
   width: 70px;
   height: 12px;
@@ -1265,7 +1287,33 @@ body {
   z-index: 0;
 }
 
-/* Attack Animations */
+.player-platform .platform-shadow {
+  width: 82px;
+  height: 14px;
+}
+
+/* Attack Lunge Animations */
+.sprite-holder.anim-lunge-player {
+  animation: player-lunge 0.3s ease-out !important;
+}
+
+.sprite-holder.anim-lunge-opp {
+  animation: opp-lunge 0.3s ease-out !important;
+}
+
+@keyframes player-lunge {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(18px, -12px) scale(1.08); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+@keyframes opp-lunge {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-18px, 12px) scale(1.08); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+/* Attack Damage Shake Animations */
 .sprite-holder.anim-shake {
   animation: hit-shake 0.3s ease;
 }

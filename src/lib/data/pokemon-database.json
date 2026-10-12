@@ -36,7 +36,8 @@
       "sprites": {
         "frontDefault": "/monsters/monster_001.png",
         "frontShiny": "/monsters/monster_001.png",
-        "officialArtwork": "/monsters/monster_001.png"
+        "officialArtwork": "/monsters/monster_001.png",
+        "backDefault": "/monsters/monster_001_back.png"
       },
       "genus": "Flame Lizard Monster",
       "description": "A fiery lizard with a vibrant burning tail. It releases bursts of sparks when energized.",
@@ -74,7 +75,8 @@
       "sprites": {
         "frontDefault": "/monsters/monster_002.png",
         "frontShiny": "/monsters/monster_002.png",
-        "officialArtwork": "/monsters/monster_002.png"
+        "officialArtwork": "/monsters/monster_002.png",
+        "backDefault": "/monsters/monster_002_back.png"
       },
       "genus": "Tidal Turtle Monster",
       "description": "Carries a stream-carved shell that repels heavy waves. Loves basking on warm riverbanks.",
@@ -112,7 +114,8 @@
       "sprites": {
         "frontDefault": "/monsters/monster_003.png",
         "frontShiny": "/monsters/monster_003.png",
-        "officialArtwork": "/monsters/monster_003.png"
+        "officialArtwork": "/monsters/monster_003.png",
+        "backDefault": "/monsters/monster_003_back.png"
       },
       "genus": "Sproutling Monster",
       "description": "Grows a sweet-smelling sprout atop its head that blooms into sunlight.",
@@ -150,7 +153,8 @@
       "sprites": {
         "frontDefault": "/monsters/monster_004.png",
         "frontShiny": "/monsters/monster_004.png",
-        "officialArtwork": "/monsters/monster_004.png"
+        "officialArtwork": "/monsters/monster_004.png",
+        "backDefault": "/monsters/monster_004_back.png"
       },
       "genus": "Spark Mouse Monster",
       "description": "Stores electrical energy in cheek pouches and darts across terrain at dizzying speed.",
