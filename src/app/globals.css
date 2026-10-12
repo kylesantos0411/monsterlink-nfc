@@ -2507,4 +2507,230 @@ body {
 @keyframes star-burst-1 { 0% { transform: translate(0,0) scale(0.3); opacity: 1; } 100% { transform: translate(-20px, -20px) scale(1.6); opacity: 0; } }
 @keyframes star-burst-2 { 0% { transform: translate(0,0) scale(0.3); opacity: 1; } 100% { transform: translate(20px, 15px) scale(1.4); opacity: 0; } }
 
+/* ========================================================
+   STATUS CONDITIONS & TACTICAL MODIFIERS (BATTLE HUD & VFX)
+   ======================================================== */
+
+/* Status Pills */
+.hud-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  margin: 2px 0 5px 0;
+  min-height: 14px;
+}
+
+.status-pill {
+  font-family: var(--font-press-start-2p), monospace;
+  font-size: 6px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.2;
+}
+
+.status-pill.poison {
+  background: #581c87;
+  color: #f3e8ff;
+  border: 1px solid #c084fc;
+  box-shadow: 0 0 5px rgba(192, 132, 252, 0.4);
+}
+
+.status-pill.paralysis {
+  background: #713f12;
+  color: #fef08a;
+  border: 1px solid #facc15;
+  box-shadow: 0 0 5px rgba(250, 204, 21, 0.4);
+}
+
+.status-pill.freeze {
+  background: #0e7490;
+  color: #e0f2fe;
+  border: 1px solid #67e8f9;
+  box-shadow: 0 0 5px rgba(103, 232, 249, 0.4);
+}
+
+.status-pill.shield {
+  background: #1e3a8a;
+  color: #dbeafe;
+  border: 1px solid #60a5fa;
+  animation: shield-pulse 1.2s infinite alternate;
+}
+
+.status-pill.def-buff {
+  background: #065f46;
+  color: #a7f3d0;
+  border: 1px solid #34d399;
+}
+
+.status-pill.def-debuff {
+  background: #7f1d1d;
+  color: #fecaca;
+  border: 1px solid #f87171;
+}
+
+@keyframes shield-pulse {
+  from { box-shadow: 0 0 2px #60a5fa; }
+  to { box-shadow: 0 0 8px #93c5fd; }
+}
+
+/* Battle Platform Sprite Auras */
+.sprite-holder.aura-poison {
+  filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.8)) hue-rotate(270deg);
+  animation: poison-bubble 1.4s ease-in-out infinite;
+}
+
+.sprite-holder.aura-paralysis {
+  filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.85));
+  animation: paralysis-twitch 2s infinite;
+}
+
+.sprite-holder.aura-freeze {
+  filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.9)) brightness(1.2) contrast(1.1);
+  animation: freeze-shimmer 2.5s ease-in-out infinite;
+}
+
+.sprite-holder.aura-shielded {
+  position: relative;
+}
+
+.sprite-holder.aura-shielded::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid #60a5fa;
+  background: radial-gradient(circle, rgba(96, 165, 250, 0.15) 30%, rgba(37, 99, 235, 0.35) 90%);
+  box-shadow: 0 0 12px rgba(96, 165, 250, 0.8);
+  pointer-events: none;
+  animation: barrier-rotate 3s linear infinite;
+}
+
+.sprite-holder.aura-hardened {
+  animation: harden-glint 1.8s ease-in-out infinite;
+}
+
+@keyframes poison-bubble {
+  0%, 100% { transform: translateY(0); filter: drop-shadow(0 0 6px rgba(168, 85, 247, 0.6)); }
+  50% { transform: translateY(-2px); filter: drop-shadow(0 0 12px rgba(192, 132, 252, 0.9)); }
+}
+
+@keyframes paralysis-twitch {
+  0%, 88%, 100% { transform: translate(0, 0); }
+  90% { transform: translate(-2px, 1px); }
+  92% { transform: translate(2px, -1px); }
+  94% { transform: translate(-1px, 2px); }
+  96% { transform: translate(1px, -2px); }
+}
+
+@keyframes freeze-shimmer {
+  0%, 100% { opacity: 0.95; }
+  50% { opacity: 1; filter: drop-shadow(0 0 14px rgba(125, 211, 252, 1)) brightness(1.3); }
+}
+
+@keyframes barrier-rotate {
+  0% { transform: scale(1) rotate(0deg); opacity: 0.8; }
+  50% { transform: scale(1.04) rotate(180deg); opacity: 1; }
+  100% { transform: scale(1) rotate(360deg); opacity: 0.8; }
+}
+
+@keyframes harden-glint {
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(234, 179, 8, 0.4)); }
+  50% { filter: drop-shadow(0 0 10px rgba(250, 204, 21, 0.9)) brightness(1.2); }
+}
+
+/* 14. Barrier Block VFX */
+.barrier-block-anim {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.barrier-block-anim .hex-barrier {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: 3px solid #60a5fa;
+  background: radial-gradient(circle, rgba(147, 197, 253, 0.4) 0%, rgba(37, 99, 235, 0.7) 100%);
+  box-shadow: 0 0 20px #3b82f6, inset 0 0 15px #93c5fd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: barrier-block-pop 0.5s ease-out forwards;
+}
+
+.barrier-block-anim .hex-inner {
+  font-size: 24px;
+}
+
+.barrier-block-anim .barrier-sparkle {
+  margin-top: 6px;
+  font-family: var(--font-press-start-2p), monospace;
+  font-size: 8px;
+  color: #60a5fa;
+  text-shadow: 0 0 8px #93c5fd;
+  font-weight: bold;
+  animation: barrier-sparkle-fade 0.5s ease-out forwards;
+}
+
+@keyframes barrier-block-pop {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.8; }
+}
+
+@keyframes barrier-sparkle-fade {
+  0% { opacity: 0; transform: translateY(10px); }
+  50% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-5px); }
+}
+
+/* 15. Defense Harden VFX */
+.defense-harden-anim {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.defense-harden-anim .harden-crest {
+  font-size: 20px;
+  color: #facc15;
+  text-shadow: 0 0 12px #eab308;
+  animation: harden-crest-rise 0.45s ease-out forwards;
+}
+
+.defense-harden-anim .harden-ring {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 3px solid #facc15;
+  box-shadow: 0 0 15px #eab308;
+  animation: harden-ring-expand 0.45s ease-out forwards;
+}
+
+@keyframes harden-crest-rise {
+  0% { transform: translateY(15px); opacity: 0; }
+  60% { transform: translateY(-5px); opacity: 1; }
+  100% { transform: translateY(-15px); opacity: 0; }
+}
+
+@keyframes harden-ring-expand {
+  0% { transform: scale(0.2); opacity: 1; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+
 

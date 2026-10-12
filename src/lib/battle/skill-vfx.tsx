@@ -13,7 +13,9 @@ export type SkillVfxType =
   | 'rock_smash'
   | 'ice_shatter'
   | 'wind_slash'
-  | 'physical_slash';
+  | 'physical_slash'
+  | 'barrier_block'
+  | 'defense_harden';
 
 export interface ActiveSkillVfx {
   moveId: string;
@@ -30,6 +32,8 @@ export function resolveSkillVfxType(moveId: string, elementType?: string): Skill
   const m = moveId.toLowerCase();
 
   // Specific move overrides
+  if (m.includes('protect') || m.includes('barrier') || m.includes('shield')) return 'barrier_block';
+  if (m.includes('armor') || m.includes('harden') || m.includes('defense')) return 'defense_harden';
   if (m.includes('fang') || m.includes('bite')) return 'fire_fang';
   if (m.includes('bubble')) return 'bubble_beam';
   if (m.includes('spore') || m.includes('powder')) return 'spore_blast';
@@ -225,6 +229,24 @@ export function SkillVfxOverlay({ vfx }: { vfx: ActiveSkillVfx }) {
           <div className="impact-slash sl2"></div>
           <div className="impact-star star1">★</div>
           <div className="impact-star star2">✦</div>
+        </div>
+      )}
+
+      {/* 14. BARRIER BLOCK (Hexagonal glowing barrier shield) */}
+      {type === 'barrier_block' && (
+        <div className="vfx-anim barrier-block-anim">
+          <div className="hex-barrier">
+            <span className="hex-inner">🛡️</span>
+          </div>
+          <span className="barrier-sparkle">✦ BLOCKED ✦</span>
+        </div>
+      )}
+
+      {/* 15. DEFENSE HARDEN (Shield crest & metallic energy expanding) */}
+      {type === 'defense_harden' && (
+        <div className="vfx-anim defense-harden-anim">
+          <div className="harden-crest">▲▲</div>
+          <div className="harden-ring"></div>
         </div>
       )}
     </div>

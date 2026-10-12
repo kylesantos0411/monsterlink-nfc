@@ -211,6 +211,26 @@ class SoundController {
     }
   }
 
+  // Battle: Shield / Barrier block
+  public playShield() {
+    this.playTone(660, 'sine', 0.25, 0.2, 0.01);
+    setTimeout(() => this.playTone(880, 'triangle', 0.2, 0.25, 0.01), 60);
+    setTimeout(() => this.playTone(1320, 'sine', 0.15, 0.3, 0.01), 120);
+  }
+
+  // Battle: Stat Boost (Harden / Shell Armor)
+  public playBuff() {
+    this.playTone(330, 'triangle', 0.12, 0.15);
+    setTimeout(() => this.playTone(440, 'triangle', 0.12, 0.18), 70);
+    setTimeout(() => this.playTone(550, 'sine', 0.15, 0.22), 140);
+  }
+
+  // Battle: Status Inflicted (Poison, Freeze, Paralysis)
+  public playStatusInflicted() {
+    this.playTone(280, 'sawtooth', 0.18, 0.15);
+    setTimeout(() => this.playTone(240, 'sawtooth', 0.22, 0.18), 90);
+  }
+
   // Battle: Super Effective strike
   public playSuperEffective() {
     this.playHit();

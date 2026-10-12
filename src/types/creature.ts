@@ -20,6 +20,15 @@ export type ElementType =
 
 export type RarityTier = 'Common' | 'Uncommon' | 'Rare' | 'Legendary';
 
+export type PrimaryStatusType = 'none' | 'poison' | 'paralysis' | 'freeze';
+
+export interface MoveStatusEffect {
+  status?: PrimaryStatusType;
+  chance?: number;               // 0 - 100 percentage
+  defenseBoostStages?: number;   // e.g. +2 for Shell Armor / Harden
+  isProtect?: boolean;           // 100% block next hit
+}
+
 export interface CreatureStats {
   hp: number;
   attack: number;
@@ -34,6 +43,7 @@ export interface MoveDefinition {
   power: number;
   accuracy: number;
   description: string;
+  statusEffect?: MoveStatusEffect;
 }
 
 export interface CreatureSpecies {
@@ -60,4 +70,5 @@ export interface CreatureInstance {
   knownMoveIds: string[];
   nfcCardCode: string | null;
   acquiredTimestampUtc: string;
+  statusCondition?: PrimaryStatusType;
 }

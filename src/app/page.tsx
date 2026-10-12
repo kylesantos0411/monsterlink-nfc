@@ -575,70 +575,158 @@ export default function HomePage() {
 
     const turnResult = activeEngine.executeTurn(moveId);
 
-    // 1. Resolve player move & unique elemental VFX
+    // 1. Resolve player step
+    const playerStep = turnResult.steps.find(s => s.actor === 'player');
     const playerMove = MOVES[moveId];
     const playerVfxType = resolveSkillVfxType(moveId, playerMove?.type);
 
-    // 2. Player lunges forward toward opponent to execute attack
-    setPlayerAnimLunge(true);
-    setTimeout(() => setPlayerAnimLunge(false), 280);
+    if (playerStep) {
+      if (playerStep.wasImmobilized) {
+        // Player couldn't move due to paralysis or freeze
+        Sound.playStatusInflicted();
+        setPlayerAnimShake(true);
+        setTimeout(() => setPlayerAnimShake(false), 300);
+      } else if (playerStep.moveUsed.statusEffect?.isProtect) {
+        Sound.playShield();
+        setActiveSkillVfx({
+          moveId,
+          moveName: playerMove ? playerMove.name : moveId,
+          type: 'barrier_block',
+          elementType: 'Normal',
+          target: 'player'
+        });
+        setTimeout(() => {
+          setActiveSkillVfx(prev => prev?.target === 'player' ? null : prev);
+        }, 600);
+      } else if (playerStep.moveUsed.statusEffect?.defenseBoostStages) {
+        Sound.playBuff();
+        setActiveSkillVfx({
+          moveId,
+          moveName: playerMove ? playerMove.name : moveId,
+          type: 'defense_harden',
+          elementType: playerMove?.type || 'Normal',
+          target: 'player'
+        });
+        setTimeout(() => {
+          setActiveSkillVfx(prev => prev?.target === 'player' ? null : prev);
+        }, 600);
+      } else if (playerStep.isBlocked) {
+        setPlayerAnimLunge(true);
+        setTimeout(() => setPlayerAnimLunge(false), 280);
+        Sound.playShield();
+        setActiveSkillVfx({
+          moveId,
+          moveName: 'Blocked!',
+          type: 'barrier_block',
+          elementType: 'Normal',
+          target: 'opponent'
+        });
+        setTimeout(() => {
+          setActiveSkillVfx(prev => prev?.target === 'opponent' ? null : prev);
+        }, 550);
+      } else {
+        // Normal attack
+        setPlayerAnimLunge(true);
+        setTimeout(() => setPlayerAnimLunge(false), 280);
+        Sound.playSkillSound(playerMove?.type);
+        if (playerStep.statusInflicted && playerStep.statusInflicted !== 'none') {
+          setTimeout(() => Sound.playStatusInflicted(), 250);
+        }
+        setActiveSkillVfx({
+          moveId,
+          moveName: playerMove ? playerMove.name : moveId,
+          type: playerVfxType,
+          elementType: playerMove ? playerMove.type : 'Normal',
+          target: 'opponent'
+        });
+        setTimeout(() => {
+          setOppAnimShake(true);
+          setTimeout(() => setOppAnimShake(false), 350);
+        }, 180);
+        setTimeout(() => {
+          setActiveSkillVfx(prev => prev?.target === 'opponent' ? null : prev);
+        }, 550);
+      }
+    }
 
-    // 3. Play distinctive elemental sound and display move VFX on opponent
-    Sound.playSkillSound(playerMove?.type);
-    setActiveSkillVfx({
-      moveId,
-      moveName: playerMove ? playerMove.name : moveId,
-      type: playerVfxType,
-      elementType: playerMove ? playerMove.type : 'Normal',
-      target: 'opponent'
-    });
-
-    // 4. Opponent shakes from player attack impact
-    setTimeout(() => {
-      setOppAnimShake(true);
-      setTimeout(() => setOppAnimShake(false), 350);
-    }, 180);
-
-    // Clear player move VFX
-    setTimeout(() => {
-      setActiveSkillVfx(prev => prev?.target === 'opponent' ? null : prev);
-    }, 550);
-
-    // Step narration sequence
+    // Step narration sequence (including end-of-turn residual damage logs)
     const narrationTexts = turnResult.steps.map(s => s.narrationLog);
+    if (turnResult.residualLogs && turnResult.residualLogs.length > 0) {
+      narrationTexts.push(...turnResult.residualLogs);
+    }
     setBattleDialogue(narrationTexts.join('\n'));
 
-    // 5. If opponent counter-attacks, trigger opponent move VFX and player hit
-    const oppStep = turnResult.steps.find(s => s.actor === 'opponent' && s.damageDealt > 0);
+    // 2. Opponent counter action
+    const oppStep = turnResult.steps.find(s => s.actor === 'opponent');
     if (oppStep) {
       setTimeout(() => {
         const oppMove = oppStep.moveUsed;
         const oppVfxType = resolveSkillVfxType(oppMove.id, oppMove.type);
 
-        // Opponent lunges
-        setOppAnimLunge(true);
-        setTimeout(() => setOppAnimLunge(false), 280);
-
-        // Play opponent's elemental sound & trigger VFX on player
-        Sound.playSkillSound(oppMove.type);
-        setActiveSkillVfx({
-          moveId: oppMove.id,
-          moveName: oppMove.name,
-          type: oppVfxType,
-          elementType: oppMove.type,
-          target: 'player'
-        });
-
-        // Player shakes from damage impact
-        setTimeout(() => {
-          setPlayerAnimShake(true);
-          setTimeout(() => setPlayerAnimShake(false), 350);
-        }, 180);
-
-        // Clear opponent VFX
-        setTimeout(() => {
-          setActiveSkillVfx(prev => prev?.target === 'player' ? null : prev);
-        }, 550);
+        if (oppStep.wasImmobilized) {
+          Sound.playStatusInflicted();
+          setOppAnimShake(true);
+          setTimeout(() => setOppAnimShake(false), 300);
+        } else if (oppStep.moveUsed.statusEffect?.isProtect) {
+          Sound.playShield();
+          setActiveSkillVfx({
+            moveId: oppMove.id,
+            moveName: oppMove.name,
+            type: 'barrier_block',
+            elementType: 'Normal',
+            target: 'opponent'
+          });
+          setTimeout(() => {
+            setActiveSkillVfx(prev => prev?.target === 'opponent' ? null : prev);
+          }, 600);
+        } else if (oppStep.moveUsed.statusEffect?.defenseBoostStages) {
+          Sound.playBuff();
+          setActiveSkillVfx({
+            moveId: oppMove.id,
+            moveName: oppMove.name,
+            type: 'defense_harden',
+            elementType: oppMove.type,
+            target: 'opponent'
+          });
+          setTimeout(() => {
+            setActiveSkillVfx(prev => prev?.target === 'opponent' ? null : prev);
+          }, 600);
+        } else if (oppStep.isBlocked) {
+          setOppAnimLunge(true);
+          setTimeout(() => setOppAnimLunge(false), 280);
+          Sound.playShield();
+          setActiveSkillVfx({
+            moveId: 'blocked',
+            moveName: 'Blocked!',
+            type: 'barrier_block',
+            elementType: 'Normal',
+            target: 'player'
+          });
+          setTimeout(() => {
+            setActiveSkillVfx(prev => prev?.target === 'player' ? null : prev);
+          }, 550);
+        } else {
+          setOppAnimLunge(true);
+          setTimeout(() => setOppAnimLunge(false), 280);
+          Sound.playSkillSound(oppMove.type);
+          if (oppStep.statusInflicted && oppStep.statusInflicted !== 'none') {
+            setTimeout(() => Sound.playStatusInflicted(), 250);
+          }
+          setActiveSkillVfx({
+            moveId: oppMove.id,
+            moveName: oppMove.name,
+            type: oppVfxType,
+            elementType: oppMove.type,
+            target: 'player'
+          });
+          setTimeout(() => {
+            setPlayerAnimShake(true);
+            setTimeout(() => setPlayerAnimShake(false), 350);
+          }, 180);
+          setTimeout(() => {
+            setActiveSkillVfx(prev => prev?.target === 'player' ? null : prev);
+          }, 550);
+        }
       }, 650);
     }
 
@@ -1568,6 +1656,23 @@ export default function HomePage() {
                         <span className="unit-name" id="opp-name">{activeEngine.opponent.nickname}</span>
                         <span className="unit-lvl" id="opp-lvl">Lv.{activeEngine.opponent.level}</span>
                       </div>
+                      <div className="hud-status-row">
+                        {activeEngine.opponentModifiers.statusCondition !== 'none' && (
+                          <span className={`status-pill ${activeEngine.opponentModifiers.statusCondition}`}>
+                            {activeEngine.opponentModifiers.statusCondition === 'poison' && 'PSN'}
+                            {activeEngine.opponentModifiers.statusCondition === 'paralysis' && 'PAR'}
+                            {activeEngine.opponentModifiers.statusCondition === 'freeze' && 'FRZ'}
+                          </span>
+                        )}
+                        {activeEngine.opponentModifiers.isShielded && (
+                          <span className="status-pill shield">🛡️ GUARD</span>
+                        )}
+                        {activeEngine.opponentModifiers.defenseStages !== 0 && (
+                          <span className={`status-pill ${activeEngine.opponentModifiers.defenseStages > 0 ? 'def-buff' : 'def-debuff'}`}>
+                            DEF {activeEngine.opponentModifiers.defenseStages > 0 ? `▲+${activeEngine.opponentModifiers.defenseStages}` : `▼${activeEngine.opponentModifiers.defenseStages}`}
+                          </span>
+                        )}
+                      </div>
                       <div className="hp-bar-outer">
                         <span className="hp-label">HP</span>
                         <div className="hp-bar-bg">
@@ -1590,7 +1695,11 @@ export default function HomePage() {
                         <SkillVfxOverlay vfx={activeSkillVfx} />
                       )}
                       <div 
-                        className={`sprite-holder ${oppAnimShake ? 'anim-shake' : ''} ${oppAnimFaint ? 'anim-faint' : ''} ${oppAnimLunge ? 'anim-lunge-opp' : ''}`} 
+                        className={`sprite-holder ${oppAnimShake ? 'anim-shake' : ''} ${oppAnimFaint ? 'anim-faint' : ''} ${oppAnimLunge ? 'anim-lunge-opp' : ''} ${
+                          activeEngine.opponentModifiers.statusCondition === 'poison' ? 'aura-poison' :
+                          activeEngine.opponentModifiers.statusCondition === 'paralysis' ? 'aura-paralysis' :
+                          activeEngine.opponentModifiers.statusCondition === 'freeze' ? 'aura-freeze' : ''
+                        } ${activeEngine.opponentModifiers.isShielded ? 'aura-shielded' : ''} ${activeEngine.opponentModifiers.defenseStages > 0 ? 'aura-hardened' : ''}`} 
                         id="opp-sprite-holder"
                         style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                       >
@@ -1607,7 +1716,11 @@ export default function HomePage() {
                         <SkillVfxOverlay vfx={activeSkillVfx} />
                       )}
                       <div 
-                        className={`sprite-holder ${playerAnimShake ? 'anim-shake' : ''} ${playerAnimFaint ? 'anim-faint' : ''} ${playerAnimLunge ? 'anim-lunge-player' : ''}`} 
+                        className={`sprite-holder ${playerAnimShake ? 'anim-shake' : ''} ${playerAnimFaint ? 'anim-faint' : ''} ${playerAnimLunge ? 'anim-lunge-player' : ''} ${
+                          activeEngine.playerModifiers.statusCondition === 'poison' ? 'aura-poison' :
+                          activeEngine.playerModifiers.statusCondition === 'paralysis' ? 'aura-paralysis' :
+                          activeEngine.playerModifiers.statusCondition === 'freeze' ? 'aura-freeze' : ''
+                        } ${activeEngine.playerModifiers.isShielded ? 'aura-shielded' : ''} ${activeEngine.playerModifiers.defenseStages > 0 ? 'aura-hardened' : ''}`} 
                         id="player-sprite-holder"
                         style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                       >
@@ -1619,6 +1732,23 @@ export default function HomePage() {
                       <div className="hud-top">
                         <span className="unit-name" id="player-name">{activeEngine.player.nickname}</span>
                         <span className="unit-lvl" id="player-lvl">Lv.{activeEngine.player.level}</span>
+                      </div>
+                      <div className="hud-status-row">
+                        {activeEngine.playerModifiers.statusCondition !== 'none' && (
+                          <span className={`status-pill ${activeEngine.playerModifiers.statusCondition}`}>
+                            {activeEngine.playerModifiers.statusCondition === 'poison' && 'PSN'}
+                            {activeEngine.playerModifiers.statusCondition === 'paralysis' && 'PAR'}
+                            {activeEngine.playerModifiers.statusCondition === 'freeze' && 'FRZ'}
+                          </span>
+                        )}
+                        {activeEngine.playerModifiers.isShielded && (
+                          <span className="status-pill shield">🛡️ GUARD</span>
+                        )}
+                        {activeEngine.playerModifiers.defenseStages !== 0 && (
+                          <span className={`status-pill ${activeEngine.playerModifiers.defenseStages > 0 ? 'def-buff' : 'def-debuff'}`}>
+                            DEF {activeEngine.playerModifiers.defenseStages > 0 ? `▲+${activeEngine.playerModifiers.defenseStages}` : `▼${activeEngine.playerModifiers.defenseStages}`}
+                          </span>
+                        )}
                       </div>
                       <div className="hp-bar-outer">
                         <span className="hp-label">HP</span>
@@ -1657,7 +1787,12 @@ export default function HomePage() {
                           >
                             <div className="move-btn-top">
                               <span className="move-btn-name">{move ? move.name : moveId}</span>
-                              <span className="move-btn-pwr">PWR {move ? move.power : 20}</span>
+                              <span className="move-btn-pwr">
+                                {move?.statusEffect?.isProtect ? 'SHIELD' :
+                                 move?.statusEffect?.defenseBoostStages ? `DEF +${move.statusEffect.defenseBoostStages}` :
+                                 move?.power === 0 ? 'BUFF' :
+                                 `PWR ${move ? move.power : 20}`}
+                              </span>
                             </div>
                             <span className={`type-pill type-${move ? move.type : 'Normal'}`}>
                               {move ? move.type : 'NORMAL'}

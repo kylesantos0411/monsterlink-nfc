@@ -71,7 +71,8 @@ export const MOVES_CATALOG: Record<string, MoveDefinition> = {
     type: 'Grass',
     power: 55,
     accuracy: 95,
-    description: 'Explodes a pouch of prickly pollen spores.',
+    description: 'Explodes a pouch of prickly pollen spores that may poison.',
+    statusEffect: { status: 'poison', chance: 40 },
   },
   wood_hammer: {
     id: 'wood_hammer',
@@ -90,6 +91,7 @@ export const MOVES_CATALOG: Record<string, MoveDefinition> = {
     power: 45,
     accuracy: 100,
     description: 'Slashes with claws energized with crackling voltage.',
+    statusEffect: { status: 'paralysis', chance: 20 },
   },
   thunder_jolt: {
     id: 'thunder_jolt',
@@ -97,7 +99,8 @@ export const MOVES_CATALOG: Record<string, MoveDefinition> = {
     type: 'Electric',
     power: 65,
     accuracy: 95,
-    description: 'Unleashes a concentrated blast of lightning.',
+    description: 'Unleashes a concentrated blast of lightning that may paralyze.',
+    statusEffect: { status: 'paralysis', chance: 30 },
   },
   wild_charge: {
     id: 'wild_charge',
@@ -106,6 +109,7 @@ export const MOVES_CATALOG: Record<string, MoveDefinition> = {
     power: 80,
     accuracy: 100,
     description: 'Shrouds itself in electricity and charges into the foe.',
+    statusEffect: { status: 'paralysis', chance: 25 },
   },
 
   // Ghost
@@ -152,6 +156,7 @@ export const MOVES_CATALOG: Record<string, MoveDefinition> = {
     power: 40,
     accuracy: 100,
     description: 'Hurls flash-frozen shards of ice at high speed.',
+    statusEffect: { status: 'freeze', chance: 15 },
   },
   frost_breath: {
     id: 'frost_breath',
@@ -159,7 +164,8 @@ export const MOVES_CATALOG: Record<string, MoveDefinition> = {
     type: 'Ice',
     power: 60,
     accuracy: 100,
-    description: 'Blows freezing breath that chills the opponent.',
+    description: 'Blows freezing breath that chills and may freeze.',
+    statusEffect: { status: 'freeze', chance: 25 },
   },
   blizzard: {
     id: 'blizzard',
@@ -167,7 +173,8 @@ export const MOVES_CATALOG: Record<string, MoveDefinition> = {
     type: 'Ice',
     power: 85,
     accuracy: 85,
-    description: 'Summons a raging blizzard of howling snow.',
+    description: 'Summons a raging blizzard of howling snow that freezes.',
+    statusEffect: { status: 'freeze', chance: 35 },
   },
 
   // Flying
@@ -285,7 +292,8 @@ export const MOVES_CATALOG: Record<string, MoveDefinition> = {
     type: 'Poison',
     power: 40,
     accuracy: 100,
-    description: 'Shoots a toxic barb that stings the foe.',
+    description: 'Shoots a toxic barb that may poison the foe.',
+    statusEffect: { status: 'poison', chance: 35 },
   },
   sludge_wave: {
     id: 'sludge_wave',
@@ -293,7 +301,46 @@ export const MOVES_CATALOG: Record<string, MoveDefinition> = {
     type: 'Poison',
     power: 80,
     accuracy: 100,
-    description: 'Swamps the battlefield in a wave of toxic sludge.',
+    description: 'Swamps the battlefield in a wave of toxic sludge that may poison.',
+    statusEffect: { status: 'poison', chance: 50 },
+  },
+
+  // Tactical & Defensive Moves
+  shell_armor: {
+    id: 'shell_armor',
+    name: 'Shell Armor',
+    type: 'Water',
+    power: 0,
+    accuracy: 100,
+    description: 'Hardens the outer shell, sharply raising Defense by 2 stages.',
+    statusEffect: { defenseBoostStages: 2 },
+  },
+  harden: {
+    id: 'harden',
+    name: 'Harden',
+    type: 'Rock',
+    power: 0,
+    accuracy: 100,
+    description: 'Stiffens body muscles to sharply raise Defense by 2 stages.',
+    statusEffect: { defenseBoostStages: 2 },
+  },
+  protect: {
+    id: 'protect',
+    name: 'Protect',
+    type: 'Normal',
+    power: 0,
+    accuracy: 100,
+    description: 'Evades incoming attacks for 1 turn with an absolute shield.',
+    statusEffect: { isProtect: true },
+  },
+  barrier: {
+    id: 'barrier',
+    name: 'Barrier',
+    type: 'Psychic',
+    power: 0,
+    accuracy: 100,
+    description: 'Throws up a glowing crystalline wall to block the next attack.',
+    statusEffect: { isProtect: true },
   },
 
   // Normal
@@ -321,21 +368,21 @@ export const CARD_REGISTRY: Record<string, CardRegistryEntry> = {};
 // Helper to pick moves matching element type
 function getDefaultMovesForType(type: ElementType): string[] {
   switch (type) {
-    case 'Fire': return ['flame_burst', 'fire_fang', 'tackle'];
-    case 'Water': return ['aqua_jet', 'bubble_beam', 'tackle'];
-    case 'Grass': return ['vine_whip', 'spore_blast', 'tackle'];
-    case 'Electric': return ['spark_claw', 'thunder_jolt', 'tackle'];
-    case 'Ghost': return ['shadow_sneak', 'night_shade', 'tackle'];
-    case 'Rock': return ['rock_throw', 'stone_edge', 'tackle'];
-    case 'Ice': return ['ice_shard', 'frost_breath', 'tackle'];
-    case 'Flying': return ['gust', 'air_slash', 'tackle'];
-    case 'Fairy': return ['fairy_wind', 'dazzling_gleam', 'tackle'];
-    case 'Steel': return ['flash_cannon', 'iron_head', 'tackle'];
-    case 'Ground': return ['mud_slap', 'earthquake', 'tackle'];
-    case 'Dark': return ['bite', 'dark_pulse', 'tackle'];
-    case 'Dragon': return ['dragon_claw', 'dragon_breath', 'tackle'];
-    case 'Poison': return ['poison_sting', 'sludge_wave', 'tackle'];
-    default: return ['quick_strike', 'tackle'];
+    case 'Fire': return ['flame_burst', 'fire_fang', 'protect', 'tackle'];
+    case 'Water': return ['aqua_jet', 'bubble_beam', 'shell_armor', 'tackle'];
+    case 'Grass': return ['vine_whip', 'spore_blast', 'protect', 'tackle'];
+    case 'Electric': return ['spark_claw', 'thunder_jolt', 'protect', 'tackle'];
+    case 'Ghost': return ['shadow_sneak', 'night_shade', 'barrier', 'tackle'];
+    case 'Rock': return ['rock_throw', 'stone_edge', 'harden', 'tackle'];
+    case 'Ice': return ['ice_shard', 'frost_breath', 'barrier', 'tackle'];
+    case 'Flying': return ['gust', 'air_slash', 'protect', 'tackle'];
+    case 'Fairy': return ['fairy_wind', 'dazzling_gleam', 'barrier', 'tackle'];
+    case 'Steel': return ['flash_cannon', 'iron_head', 'harden', 'tackle'];
+    case 'Ground': return ['mud_slap', 'earthquake', 'harden', 'tackle'];
+    case 'Dark': return ['bite', 'dark_pulse', 'protect', 'tackle'];
+    case 'Dragon': return ['dragon_claw', 'dragon_breath', 'protect', 'tackle'];
+    case 'Poison': return ['poison_sting', 'sludge_wave', 'protect', 'tackle'];
+    default: return ['quick_strike', 'protect', 'tackle'];
   }
 }
 
