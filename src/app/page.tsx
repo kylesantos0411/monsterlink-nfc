@@ -5,8 +5,6 @@ import { HybridStorage } from '@/lib/storage/hybrid-storage';
 import { CreatureInstance } from '@/types/creature';
 import { BattleRecord } from '@/types/records';
 import { CARD_REGISTRY, SPECIES_CATALOG, MOVES_CATALOG as MOVES, createCreatureInstance, resolveCardRegistryEntry } from '@/lib/data/catalog';
-import { MEZASTAR_CATALOG, getMezastarTagByNfcCode } from '@/lib/data/mezastar-catalog';
-import { fetchPokemonReference, PokeApiReferenceData } from '@/lib/pokeapi/client';
 import { BattleEngine } from '@/lib/battle/battle-engine';
 import { createBattleRecord } from '@/lib/battle/record-factory';
 import { useWebNfc } from '@/lib/nfc/use-web-nfc';
@@ -84,8 +82,8 @@ export default function HomePage() {
     time: string;
     isSimulated: boolean;
   }>>([
-    { code: 'ML-0025', name: 'Pikachu', dexNumber: 25, time: 'Preset', isSimulated: true },
-    { code: 'ML-0006', name: 'Charizard', dexNumber: 6, time: 'Preset', isSimulated: true },
+    { code: 'ML-0001', name: 'Flamby', dexNumber: 1, time: 'Preset', isSimulated: true },
+    { code: 'ML-0002', name: 'Aquat', dexNumber: 2, time: 'Preset', isSimulated: true },
   ]);
 
   // Last read / scanned card data
@@ -94,12 +92,12 @@ export default function HomePage() {
   // Collection modal state
   const [inspectCreature, setInspectCreature] = useState<{
     instance: CreatureInstance;
-    pokeApiRef: PokeApiReferenceData | null;
+    monsterRecord: PokemonSpeciesRecord | null;
   } | null>(null);
 
   // Battle Arena state
   const [selectedRosterId, setSelectedRosterId] = useState<string | null>(null);
-  const [selectedOpponentSpecies, setSelectedOpponentSpecies] = useState<string>('species_aquabite');
+  const [selectedOpponentSpecies, setSelectedOpponentSpecies] = useState<string>('species_aquat');
   const [activeEngine, setActiveEngine] = useState<BattleEngine | null>(null);
   const [battleDialogue, setBattleDialogue] = useState<string>('What will your creature do?');
   const [playerAnimShake, setPlayerAnimShake] = useState<boolean>(false);
@@ -153,12 +151,58 @@ export default function HomePage() {
   }, []);
 
   async function refreshData() {
-    const coll = await HybridStorage.getCollection();
+    const rawColl = await HybridStorage.getCollection();
     const hist = await HybridStorage.getBattleHistory();
-    setCollection(coll);
+
+    // Auto-migrate legacy starter aliases and purge foreign Pokémon from previous sessions
+    let needsSave = false;
+    const sanitized = rawColl
+      .map(c => {
+        if (c.speciesId === 'species_ignisaur') {
+          needsSave = true;
+          return { ...c, speciesId: 'species_flamby', nickname: c.nickname === 'Ignisaur' ? 'Flamby' : c.nickname };
+        }
+        if (c.speciesId === 'species_aquabite') {
+          needsSave = true;
+          return { ...c, speciesId: 'species_aquat', nickname: c.nickname === 'Aquabite' ? 'Aquat' : c.nickname };
+        }
+        if (c.speciesId === 'species_floraslug') {
+          needsSave = true;
+          return { ...c, speciesId: 'species_leafy', nickname: c.nickname === 'Floraslug' ? 'Leafy' : c.nickname };
+        }
+        if (c.speciesId === 'species_voltkit') {
+          needsSave = true;
+          return { ...c, speciesId: 'species_sparki', nickname: c.nickname === 'Voltkit' ? 'Sparki' : c.nickname };
+        }
+        return c;
+      })
+      .filter(c => {
+        // Only keep monsters from our 50 original monsters database
+        const exists = Boolean(getPokemonByName(c.speciesId));
+        if (!exists) {
+          needsSave = true;
+          return false;
+        }
+        return true;
+      });
+
+    if (needsSave) {
+      await HybridStorage.saveCollection(sanitized);
+    }
+
+    setCollection(sanitized);
     setHistory(hist);
-    if (coll.length > 0 && !selectedRosterId) {
-      setSelectedRosterId(coll[0].instanceId);
+    if (sanitized.length > 0 && !selectedRosterId) {
+      setSelectedRosterId(sanitized[0].instanceId);
+    }
+  }
+
+  // Clear Collection (removes old test monsters)
+  async function handleResetCollection() {
+    if (confirm('Clear your collection to remove old test monsters? You can re-scan your physical tags or seed demo monsters anytime.')) {
+      await HybridStorage.saveCollection([]);
+      await refreshData();
+      showToast('Collection reset! Ready for your original monsters.', 'info');
     }
   }
 
@@ -186,15 +230,15 @@ export default function HomePage() {
       showToast('Collection already has 2 or more creatures!', 'info');
       return;
     }
-    const c1 = createCreatureInstance('species_ignisaur', 'ML-CARD-IGNI-01', 'Ignisaur', 5);
-    const c2 = createCreatureInstance('species_aquabite', 'ML-CARD-AQUA-02', 'Aquabite', 5);
+    const c1 = createCreatureInstance('species_flamby', 'ML-0001', 'Flamby', 5);
+    const c2 = createCreatureInstance('species_aquat', 'ML-0002', 'Aquat', 5);
     await HybridStorage.addCreature(c1);
-    await HybridStorage.registerCard('ML-CARD-IGNI-01', c1.instanceId, c1.speciesId);
+    await HybridStorage.registerCard('ML-0001', c1.instanceId, c1.speciesId);
     await HybridStorage.addCreature(c2);
-    await HybridStorage.registerCard('ML-CARD-AQUA-02', c2.instanceId, c2.speciesId);
+    await HybridStorage.registerCard('ML-0002', c2.instanceId, c2.speciesId);
     await refreshData();
     Sound.playScanSuccess();
-    showToast('Demo creatures (Flamby & Aquat) added!', 'success');
+    showToast('Demo monsters (Flamby & Aquat) added!', 'success');
   }
 
   // Select Pokémon for writing
@@ -484,17 +528,10 @@ export default function HomePage() {
   }
 
   // Inspect Modal
-  async function openInspect(creature: CreatureInstance) {
+  function openInspect(creature: CreatureInstance) {
     Sound.playClick();
-    let ref: PokeApiReferenceData | null = null;
-    const mezastar = creature.nfcCardCode ? getMezastarTagByNfcCode(creature.nfcCardCode) : null;
-    if (mezastar) {
-      ref = await fetchPokemonReference(mezastar.pokeApiId);
-    } else if (creature.speciesId.startsWith('species_')) {
-      const pokeName = creature.speciesId.replace('species_', '');
-      ref = await fetchPokemonReference(pokeName);
-    }
-    setInspectCreature({ instance: creature, pokeApiRef: ref });
+    const monster = getPokemonByName(creature.speciesId);
+    setInspectCreature({ instance: creature, monsterRecord: monster });
   }
 
   // Start Battle
@@ -935,16 +972,9 @@ export default function HomePage() {
                         <button
                           type="button"
                           className="pixel-btn-small"
-                          onClick={() => setCustomWriteCode(formatCardIdentifier(selectedPokemonForWrite.pokedexNumber, 'ML-PKMN'))}
+                          onClick={() => setCustomWriteCode(formatCardIdentifier(selectedPokemonForWrite.pokedexNumber, 'ML-MONSTER'))}
                         >
-                          ML-PKMN-{String(selectedPokemonForWrite.pokedexNumber).padStart(4, '0')}
-                        </button>
-                        <button
-                          type="button"
-                          className="pixel-btn-small"
-                          onClick={() => setCustomWriteCode(`MEZASTAR-01-${String(selectedPokemonForWrite.pokedexNumber).padStart(3, '0')}`)}
-                        >
-                          MEZASTAR
+                          ML-MONSTER-{String(selectedPokemonForWrite.pokedexNumber).padStart(4, '0')}
                         </button>
                       </div>
                     </div>
@@ -1094,63 +1124,56 @@ export default function HomePage() {
 
                     {/* Test Physical Cards Rack */}
                     <div className="test-cards-section">
-                      <div className="section-title">PRESET TEST NFC CARDS (STAGE A SIMULATION):</div>
+                      <div className="section-title">PRESET ORIGINAL MONSTER TAGS (TAP TO SCAN SIMULATION):</div>
                       <div className="cards-grid">
-                        <button className="card-chip card-fire" onClick={() => handleScanCard('ML-CARD-IGNI-01')}>
-                          <div className="chip-code">ML-CARD-IGNI-01</div>
-                          <div className="chip-name">Ignisaur (Fire)</div>
+                        <button className="card-chip card-fire" onClick={() => handleScanCard('ML-0001')}>
+                          <div className="chip-code">ML-0001</div>
+                          <div className="chip-name">Flamby (Fire)</div>
                           <div className="chip-tap">TAP TO SCAN</div>
                         </button>
-                        <button className="card-chip card-water" onClick={() => handleScanCard('ML-CARD-AQUA-02')}>
-                          <div className="chip-code">ML-CARD-AQUA-02</div>
-                          <div className="chip-name">Aquabite (Water)</div>
+                        <button className="card-chip card-water" onClick={() => handleScanCard('ML-0002')}>
+                          <div className="chip-code">ML-0002</div>
+                          <div className="chip-name">Aquat (Water)</div>
                           <div className="chip-tap">TAP TO SCAN</div>
                         </button>
-                        <button className="card-chip card-grass" onClick={() => handleScanCard('ML-CARD-FLOR-03')}>
-                          <div className="chip-code">ML-CARD-FLOR-03</div>
-                          <div className="chip-name">Floraslug (Grass)</div>
+                        <button className="card-chip card-grass" onClick={() => handleScanCard('ML-0003')}>
+                          <div className="chip-code">ML-0003</div>
+                          <div className="chip-name">Leafy (Grass)</div>
                           <div className="chip-tap">TAP TO SCAN</div>
                         </button>
-                        <button className="card-chip card-electric" onClick={() => handleScanCard('ML-CARD-VOLT-04')}>
-                          <div className="chip-code">ML-CARD-VOLT-04</div>
-                          <div className="chip-name">Voltkit (Electric)</div>
+                        <button className="card-chip card-electric" onClick={() => handleScanCard('ML-0004')}>
+                          <div className="chip-code">ML-0004</div>
+                          <div className="chip-name">Sparki (Electric)</div>
                           <div className="chip-tap">TAP TO SCAN</div>
                         </button>
-                      </div>
-                    </div>
-
-                    {/* MEZASTAR Official Tags */}
-                    <div className="test-cards-section">
-                      <div className="section-title">POKÉMON MEZASTAR SAMPLES:</div>
-                      <div className="cards-grid">
-                        <button className="card-chip card-electric" onClick={() => handleScanCard('ML-MEZASTAR-001')}>
-                          <div className="chip-code">ML-MEZASTAR-001</div>
-                          <div className="chip-name">Pikachu (5★ Z-Move)</div>
+                        <button className="card-chip" style={{ borderLeft: '6px solid var(--type-ghost)' }} onClick={() => handleScanCard('ML-0005')}>
+                          <div className="chip-code">ML-0005</div>
+                          <div className="chip-name">Shade (Ghost)</div>
                           <div className="chip-tap">TAP TO SCAN</div>
                         </button>
-                        <button className="card-chip card-fire" onClick={() => handleScanCard('MEZASTAR-01-001')}>
-                          <div className="chip-code">MEZASTAR-01-001</div>
-                          <div className="chip-name">Charizard (6★ Superstar)</div>
+                        <button className="card-chip" style={{ borderLeft: '6px solid var(--type-rock)' }} onClick={() => handleScanCard('ML-0006')}>
+                          <div className="chip-code">ML-0006</div>
+                          <div className="chip-name">Rocky (Rock)</div>
                           <div className="chip-tap">TAP TO SCAN</div>
                         </button>
-                        <button className="card-chip card-water" onClick={() => handleScanCard('MEZASTAR-01-003')}>
-                          <div className="chip-code">MEZASTAR-01-003</div>
-                          <div className="chip-name">Blastoise (6★ Superstar)</div>
+                        <button className="card-chip" style={{ borderLeft: '6px solid var(--type-steel)' }} onClick={() => handleScanCard('ML-0020')}>
+                          <div className="chip-code">ML-0020</div>
+                          <div className="chip-name">Forge (Steel)</div>
                           <div className="chip-tap">TAP TO SCAN</div>
                         </button>
-                        <button className="card-chip card-grass" onClick={() => handleScanCard('ML-MEZASTAR-004')}>
-                          <div className="chip-code">ML-MEZASTAR-004</div>
-                          <div className="chip-name">Venusaur (6★ Superstar)</div>
+                        <button className="card-chip card-water" onClick={() => handleScanCard('ML-0026')}>
+                          <div className="chip-code">ML-0026</div>
+                          <div className="chip-name">Coralis (Water)</div>
                           <div className="chip-tap">TAP TO SCAN</div>
                         </button>
-                        <button className="card-chip" style={{ borderLeft: '6px solid var(--type-fighting)' }} onClick={() => handleScanCard('ML-MEZASTAR-005')}>
-                          <div className="chip-code">ML-MEZASTAR-005</div>
-                          <div className="chip-name">Lucario (5★ Mega)</div>
+                        <button className="card-chip" style={{ borderLeft: '6px solid var(--type-dragon)' }} onClick={() => handleScanCard('ML-0042')}>
+                          <div className="chip-code">ML-0042</div>
+                          <div className="chip-name">Jett (Dragon Apex)</div>
                           <div className="chip-tap">TAP TO SCAN</div>
                         </button>
-                        <button className="card-chip" style={{ borderLeft: '6px solid var(--type-ghost)' }} onClick={() => handleScanCard('ML-MEZASTAR-006')}>
-                          <div className="chip-code">ML-MEZASTAR-006</div>
-                          <div className="chip-name">Gengar (4★ Star)</div>
+                        <button className="card-chip" style={{ borderLeft: '6px solid var(--type-steel)' }} onClick={() => handleScanCard('ML-0050')}>
+                          <div className="chip-code">ML-0050</div>
+                          <div className="chip-name">Orbit (Steel Cosmic)</div>
                           <div className="chip-tap">TAP TO SCAN</div>
                         </button>
                       </div>
@@ -1271,8 +1294,26 @@ export default function HomePage() {
                 <button className="header-action-btn" onClick={() => navigateTo('view-scan')}>+ SCAN</button>
               </div>
 
-              <div className="collection-summary">
+              <div className="collection-summary" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span>REGISTERED CREATURES: <strong id="coll-count-text">{collection.length}</strong></span>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button 
+                    className="pixel-btn-small" 
+                    onClick={handleQuickSeed} 
+                    title="Seed Flamby and Aquat"
+                    style={{ fontSize: '6px', padding: '2px 6px' }}
+                  >
+                    + Seed 2
+                  </button>
+                  <button 
+                    className="pixel-btn-small" 
+                    onClick={handleResetCollection} 
+                    title="Clear old / foreign monsters"
+                    style={{ fontSize: '6px', padding: '2px 6px', borderColor: '#ef4444', color: '#f87171' }}
+                  >
+                    🗑 Clear All
+                  </button>
+                </div>
               </div>
 
               <div className="collection-scroll" id="collection-grid">
@@ -1286,7 +1327,7 @@ export default function HomePage() {
                 ) : (
                   collection.map((creature) => {
                     const species = SPECIES_CATALOG[creature.speciesId];
-                    const mezastar = creature.nfcCardCode ? getMezastarTagByNfcCode(creature.nfcCardCode) : null;
+                    const cardEntry = creature.nfcCardCode ? resolveCardRegistryEntry(creature.nfcCardCode) : null;
                     return (
                       <div 
                         key={creature.instanceId} 
@@ -1303,9 +1344,9 @@ export default function HomePage() {
                             <span className={`type-pill type-${species?.type || 'Normal'}`}>
                               {species?.type || 'NORMAL'}
                             </span>
-                            {mezastar && (
+                            {cardEntry?.grade && (
                               <span style={{ fontSize: '6px', color: '#f39c12', border: '1px solid #f39c12', padding: '1px 4px' }}>
-                                {mezastar.grade}
+                                {cardEntry.grade}
                               </span>
                             )}
                           </div>
@@ -1377,16 +1418,11 @@ export default function HomePage() {
                         value={selectedOpponentSpecies}
                         onChange={(e) => setSelectedOpponentSpecies(e.target.value)}
                       >
-                        <option value="species_aquabite">Aquabite (Water / Defensive)</option>
-                        <option value="species_ignisaur">Ignisaur (Fire / Aggressive)</option>
-                        <option value="species_floraslug">Floraslug (Grass / High HP)</option>
-                        <option value="species_voltkit">Voltkit (Electric / High Speed)</option>
-                        <option value="species_pikachu">Pikachu (Electric / Fast)</option>
-                        <option value="species_charizard">Charizard (Fire / Flying)</option>
-                        <option value="species_blastoise">Blastoise (Water / Heavy Defense)</option>
-                        <option value="species_venusaur">Venusaur (Grass / Tank)</option>
-                        <option value="species_lucario">Lucario (Normal/Fighting / High ATK)</option>
-                        <option value="species_gengar">Gengar (Normal/Ghost / High SPD)</option>
+                        {POKEMON_DATABASE.map(m => (
+                          <option key={m.speciesId} value={m.speciesId}>
+                            #{String(m.pokedexNumber).padStart(3, '0')} {m.displayName} ({m.primaryType})
+                          </option>
+                        ))}
                       </select>
                     </div>
 
@@ -1797,38 +1833,36 @@ export default function HomePage() {
                     </div>
                   </div>
 
-                  {/* PokéAPI Reference Data if present */}
-                  {inspectCreature.pokeApiRef && (
+                  {/* Monster Archive Record */}
+                  {inspectCreature.monsterRecord && (
                     <div style={{ background: '#090d14', border: '2px solid #233045', padding: '8px 10px', marginBottom: '10px', fontSize: '7px' }}>
-                      <div style={{ color: '#f39c12', marginBottom: '6px', fontWeight: 'bold', display: 'flex', justifyContent: 'space-between' }}>
-                        <span>POKÉAPI NATIONAL DEX #{inspectCreature.pokeApiRef.id}</span>
-                        <span>{getPokemonByPokedexNumber(inspectCreature.pokeApiRef.id)?.genus || 'Pokémon'}</span>
+                      <div style={{ color: '#38bdf8', marginBottom: '6px', fontWeight: 'bold', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>MONSTER ARCHIVE // #{String(inspectCreature.monsterRecord.pokedexNumber).padStart(3, '0')}</span>
+                        <span>{inspectCreature.monsterRecord.genus}</span>
                       </div>
                       <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                        {inspectCreature.pokeApiRef.sprites.officialArtwork && (
-                          <img 
-                            src={inspectCreature.pokeApiRef.sprites.officialArtwork} 
-                            alt={inspectCreature.pokeApiRef.name} 
-                            style={{ width: '56px', height: '56px', objectFit: 'contain', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))' }}
-                          />
-                        )}
+                        <img 
+                          src={inspectCreature.monsterRecord.sprites.frontDefault || undefined} 
+                          alt={inspectCreature.monsterRecord.name} 
+                          style={{ width: '56px', height: '56px', objectFit: 'contain', imageRendering: 'pixelated', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))' }}
+                        />
                         <div style={{ flex: 1, lineHeight: '1.6' }}>
-                          <div style={{ color: '#fff', fontWeight: 'bold' }}>{inspectCreature.pokeApiRef.displayName}</div>
+                          <div style={{ color: '#fff', fontWeight: 'bold' }}>{inspectCreature.monsterRecord.displayName}</div>
                           <div style={{ color: '#8da2c0' }}>
-                            Height: {inspectCreature.pokeApiRef.height / 10}m | Weight: {inspectCreature.pokeApiRef.weight / 10}kg
+                            Height: {(inspectCreature.monsterRecord.height / 10).toFixed(1)}m | Weight: {(inspectCreature.monsterRecord.weight / 10).toFixed(1)}kg
                           </div>
                           <div style={{ display: 'flex', gap: '4px', marginTop: '3px' }}>
-                            {inspectCreature.pokeApiRef.types.map(t => (
-                              <span key={t} className={`type-pill type-${t.charAt(0).toUpperCase() + t.slice(1)}`}>
+                            {inspectCreature.monsterRecord.types.map(t => (
+                              <span key={t} className={`type-pill type-${t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()}`}>
                                 {t.toUpperCase()}
                               </span>
                             ))}
                           </div>
                         </div>
                       </div>
-                      {getPokemonByPokedexNumber(inspectCreature.pokeApiRef.id)?.description && (
+                      {inspectCreature.monsterRecord.description && (
                         <div style={{ marginTop: '6px', color: '#cad8ee', fontStyle: 'italic', fontSize: '6px', borderTop: '1px solid #1a2233', paddingTop: '4px' }}>
-                          "{getPokemonByPokedexNumber(inspectCreature.pokeApiRef.id)?.description}"
+                          &ldquo;{inspectCreature.monsterRecord.description}&rdquo;
                         </div>
                       )}
                     </div>

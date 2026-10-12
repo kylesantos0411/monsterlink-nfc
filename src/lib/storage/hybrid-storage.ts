@@ -5,6 +5,7 @@ import { supabase, isSupabaseConfigured } from '../supabase/client';
 
 export interface StorageService {
   getCollection(): Promise<CreatureInstance[]>;
+  saveCollection(creatures: CreatureInstance[]): Promise<void>;
   addCreature(creature: CreatureInstance): Promise<void>;
   isCardRegistered(cardCode: string): Promise<boolean>;
   getRegisteredCards(): Promise<Record<string, any>>;
@@ -52,6 +53,10 @@ export const HybridStorage: StorageService = {
     } catch {
       return local;
     }
+  },
+
+  async saveCollection(creatures: CreatureInstance[]): Promise<void> {
+    LocalStorageRepository.saveCollection(creatures);
   },
 
   async addCreature(creature: CreatureInstance): Promise<void> {
