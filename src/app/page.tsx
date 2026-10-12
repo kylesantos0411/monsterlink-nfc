@@ -60,6 +60,14 @@ export default function HomePage() {
   const [modalIsWriting, setModalIsWriting] = useState<boolean>(false);
   const [modalWriteResult, setModalWriteResult] = useState<{ success: boolean; message: string; isSimulated: boolean } | null>(null);
   const [modalAllowOverwrite, setModalAllowOverwrite] = useState<boolean>(true);
+  const [modalSpriteView, setModalSpriteView] = useState<'front' | 'back'>('front');
+  const [monsterListSort, setMonsterListSort] = useState<'dex' | 'name' | 'hp' | 'atk' | 'def' | 'spd'>('dex');
+  const [mascotStarterIndex, setMascotStarterIndex] = useState<number>(0);
+  const [nicknameEditCreature, setNicknameEditCreature] = useState<CreatureInstance | null>(null);
+  const [nicknameInput, setNicknameInput] = useState<string>('');
+  const [showCombatLog, setShowCombatLog] = useState<boolean>(false);
+  const [combatLogEntries, setCombatLogEntries] = useState<{ turn: number; logs: string[] }[]>([]);
+  const backupFileInputRef = useRef<HTMLInputElement>(null);
 
   // NFC Writer State
   const [writeSearchQuery, setWriteSearchQuery] = useState<string>('');
@@ -342,10 +350,24 @@ export default function HomePage() {
     showToast(`[SIMULATED] Card [${code}] programmed!`, 'info');
   }
 
+  const STARTER_MASCOTS = [
+    { id: 'species_flamby', name: 'Flamby', type: 'Fire', soundType: 'Fire', color: '#ff5722', dex: '#001', genus: 'Fire Pup Monster' },
+    { id: 'species_aquat', name: 'Aquat', type: 'Water', soundType: 'Water', color: '#00e5ff', dex: '#004', genus: 'Aqua Turtle Monster' },
+    { id: 'species_leafy', name: 'Leafy', type: 'Grass', soundType: 'Grass', color: '#4caf50', dex: '#007', genus: 'Sprout Rabbit Monster' },
+    { id: 'species_sparki', name: 'Sparki', type: 'Electric', soundType: 'Electric', color: '#ffeb3b', dex: '#010', genus: 'Lightning Fox Monster' },
+  ];
+
+  function handleCycleMascot() {
+    const nextIdx = (mascotStarterIndex + 1) % STARTER_MASCOTS.length;
+    setMascotStarterIndex(nextIdx);
+    Sound.playSkillSound(STARTER_MASCOTS[nextIdx].soundType);
+  }
+
   // Monster List (Database) Modal Handlers
   function openMonsterModal(pkmn: PokemonSpeciesRecord) {
     Sound.playClick();
     setSelectedMonsterForModal(pkmn);
+    setModalSpriteView('front');
     setModalVerificationSteps(null);
     setModalWriteResult(null);
   }
@@ -353,8 +375,63 @@ export default function HomePage() {
   function closeMonsterModal() {
     Sound.playClick();
     setSelectedMonsterForModal(null);
+    setModalSpriteView('front');
     setModalVerificationSteps(null);
     setModalWriteResult(null);
+  }
+
+  async function handleEnrollToCollection(speciesId: string) {
+    try {
+      Sound.playClick();
+      const inst = createCreatureInstance(speciesId, null, null, 5);
+      await HybridStorage.addCreature(inst);
+      await refreshData();
+      showToast(`Enrolled ${inst.nickname} (Lv.5) into Collection!`, 'success');
+    } catch (err: any) {
+      showToast(`Enroll failed: ${err.message}`, 'error');
+    }
+  }
+
+  function handleSetBattleStarter(instanceId: string) {
+    Sound.playClick();
+    setSelectedRosterId(instanceId);
+    const creature = collection.find(c => c.instanceId === instanceId);
+    showToast(`${creature ? creature.nickname : 'Creature'} set as Lead Fighter!`, 'success');
+  }
+
+  async function handleSaveNickname() {
+    if (!nicknameEditCreature) return;
+    const newName = nicknameInput.trim();
+    if (!newName) {
+      showToast('Nickname cannot be empty', 'error');
+      return;
+    }
+    const updatedCollection = collection.map(c => 
+      c.instanceId === nicknameEditCreature.instanceId ? { ...c, nickname: newName } : c
+    );
+    setCollection(updatedCollection);
+    await HybridStorage.saveCollection(updatedCollection);
+    setNicknameEditCreature(null);
+    showToast(`Renamed to "${newName}"!`, 'success');
+  }
+
+  async function handleImportBackupFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      if (!parsed || typeof parsed !== 'object') {
+        throw new Error('Invalid JSON backup file');
+      }
+      await HybridStorage.importRawData(parsed);
+      await refreshData();
+      showToast('Backup restored successfully!', 'success');
+    } catch (err: any) {
+      showToast(`Restore failed: ${err.message || 'Corrupted file'}`, 'error');
+    } finally {
+      if (e.target) e.target.value = '';
+    }
   }
 
   async function handleModalWriteAndVerify(pkmn: PokemonSpeciesRecord) {
@@ -563,6 +640,8 @@ export default function HomePage() {
     setOppAnimFaint(false);
     setActiveSkillVfx(null);
     setBattleResultModal(null);
+    setCombatLogEntries([]);
+    setShowCombatLog(false);
   }
 
   // Execute Combat Move Turn
@@ -655,6 +734,10 @@ export default function HomePage() {
       narrationTexts.push(...turnResult.residualLogs);
     }
     setBattleDialogue(narrationTexts.join('\n'));
+    setCombatLogEntries(prev => [
+      ...prev,
+      { turn: activeEngine.currentTurn, logs: [...narrationTexts] }
+    ]);
 
     // 2. Opponent counter action
     const oppStep = turnResult.steps.find(s => s.actor === 'opponent');
@@ -1007,15 +1090,37 @@ export default function HomePage() {
             <section id="view-menu" className={`view ${currentView === 'view-menu' ? 'active' : ''}`}>
               <div className="menu-hero">
                 <div className="logo-box">
-                  <div className="logo-subtitle">PHYSICAL NFC x RETRO 2D</div>
+                  <div className="logo-subtitle">PHYSICAL NTAG215 x RETRO BATTLE</div>
                   <h1 className="logo-title">MONSTER<br /><span>LINK</span></h1>
-                  <div className="logo-version">PROTOTYPE V0.5</div>
+                  <div className="logo-version">CYBERDECK EDITION</div>
                 </div>
-                <div className="hero-mascot" id="menu-mascot-container">
-                  <div 
-                    className="pixel-sprite"
-                    dangerouslySetInnerHTML={{ __html: PIXEL_SPRITES.ignisaur }}
-                  />
+                {/* Interactive Mascot Showcase */}
+                <div className="hero-mascot-showcase" id="menu-mascot-container" onClick={handleCycleMascot} title="Tap to cycle starter monsters!">
+                  <div className="mascot-sprite-frame">
+                    {renderCreatureVisual(STARTER_MASCOTS[mascotStarterIndex].id, '100%')}
+                  </div>
+                  <div className="mascot-meta-badge">
+                    <span className="mascot-dex">{STARTER_MASCOTS[mascotStarterIndex].dex}</span>
+                    <span className="mascot-name" style={{ color: STARTER_MASCOTS[mascotStarterIndex].color }}>
+                      {STARTER_MASCOTS[mascotStarterIndex].name.toUpperCase()}
+                    </span>
+                    <span className={`type-pill type-${STARTER_MASCOTS[mascotStarterIndex].type}`}>
+                      {STARTER_MASCOTS[mascotStarterIndex].type}
+                    </span>
+                  </div>
+                  <div className="mascot-dots-row">
+                    {STARTER_MASCOTS.map((m, idx) => (
+                      <span 
+                        key={m.id} 
+                        className={`mascot-dot ${idx === mascotStarterIndex ? 'active' : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMascotStarterIndex(idx);
+                          Sound.playSkillSound(m.soundType);
+                        }}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -1023,32 +1128,34 @@ export default function HomePage() {
                 <button className="pixel-btn btn-primary" onClick={() => navigateTo('view-scan')}>
                   <span className="btn-icon">📡</span>
                   <span className="btn-label">NFC LAB & PROGRAMMER</span>
-                  <span className="btn-sub">Read & Write NTAG215 Tags</span>
+                  <span className="btn-sub">Direct NTAG215 Read &amp; Write</span>
                 </button>
                 <button className="pixel-btn" style={{ borderColor: '#38bdf8' }} onClick={() => navigateTo('view-monsterlist')}>
                   <span className="btn-icon">👾</span>
-                  <span className="btn-label">MONSTER LIST (50 CREATURES)</span>
-                  <span className="btn-sub">Original Monsters &amp; NFC Writer</span>
+                  <span className="btn-label">MONSTER BESTIARY (50)</span>
+                  <span className="btn-sub">Original Monsters &amp; NFC Cards</span>
                   <span className="btn-badge">{POKEMON_DATABASE.length}</span>
                 </button>
                 <button className="pixel-btn" onClick={() => navigateTo('view-collection')}>
                   <span className="btn-icon">📦</span>
-                  <span className="btn-label">MY COLLECTION</span>
+                  <span className="btn-label">COLLECTION DECK</span>
+                  <span className="btn-sub">Manage registered monsters</span>
                   <span className="btn-badge" id="menu-collection-count">{collection.length}</span>
                 </button>
                 <button className="pixel-btn btn-battle" onClick={() => navigateTo('view-battle')}>
                   <span className="btn-icon">⚔️</span>
                   <span className="btn-label">BATTLE ARENA</span>
-                  <span className="btn-sub">Turn-based combat</span>
+                  <span className="btn-sub">Turn-based tactical combat</span>
                 </button>
                 <button className="pixel-btn" onClick={() => navigateTo('view-history')}>
                   <span className="btn-icon">📜</span>
                   <span className="btn-label">BATTLE RECORDS</span>
-                  <span className="btn-sub">Past match history</span>
+                  <span className="btn-sub">Match logs and win streaks</span>
                 </button>
                 <button className="pixel-btn" onClick={() => navigateTo('view-settings')}>
                   <span className="btn-icon">⚙️</span>
-                  <span className="btn-label">SETTINGS & DATA</span>
+                  <span className="btn-label">SETTINGS &amp; BACKUP</span>
+                  <span className="btn-sub">Audio, CRT, &amp; data restore</span>
                 </button>
               </nav>
             </section>
@@ -1082,7 +1189,7 @@ export default function HomePage() {
                     className="nfc-tab-btn"
                     onClick={() => { Sound.playClick(); navigateTo('view-monsterlist'); }}
                   >
-                    📖 152 LIST
+                    📖 BESTIARY (50)
                   </button>
                   <button 
                     className={`nfc-tab-btn ${nfcLabTab === 'guide' ? 'active' : ''}`}
@@ -1535,10 +1642,11 @@ export default function HomePage() {
                   collection.map((creature) => {
                     const species = SPECIES_CATALOG[creature.speciesId];
                     const cardEntry = creature.nfcCardCode ? resolveCardRegistryEntry(creature.nfcCardCode) : null;
+                    const isLead = selectedRosterId === creature.instanceId;
                     return (
                       <div 
                         key={creature.instanceId} 
-                        className="creature-card-row"
+                        className={`creature-card-row ${isLead ? 'is-lead-combatant' : ''}`}
                         onClick={() => openInspect(creature)}
                       >
                         <div className="card-sprite-thumb">
@@ -1551,15 +1659,43 @@ export default function HomePage() {
                             <span className={`type-pill type-${species?.type || 'Normal'}`}>
                               {species?.type || 'NORMAL'}
                             </span>
-                            {cardEntry?.grade && (
-                              <span style={{ fontSize: '6px', color: '#f39c12', border: '1px solid #f39c12', padding: '1px 4px' }}>
-                                {cardEntry.grade}
+                            {isLead && (
+                              <span className="lead-star-badge" title="Lead Fighter for Battle">
+                                ★ LEAD FIGHTER
                               </span>
                             )}
                           </div>
-                          <div className="card-meta-nfc">
-                            CARD: {creature.nfcCardCode || 'Digital Sample'}
+                          <div className="card-stats-mini">
+                            <span>HP: {creature.currentHp}/{creature.maxHp}</span>
+                            <span>ATK: {creature.attack}</span>
+                            <span>DEF: {creature.defense}</span>
+                            <span>SPD: {creature.speed}</span>
                           </div>
+                          <div className="card-meta-nfc">
+                            CARD: {creature.nfcCardCode || 'Digital Tag'} {cardEntry?.grade ? `• ${cardEntry.grade}` : ''}
+                          </div>
+                        </div>
+                        <div className="card-row-actions" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            type="button"
+                            className={`action-icon-btn ${isLead ? 'active-lead' : ''}`}
+                            onClick={() => handleSetBattleStarter(creature.instanceId)}
+                            title={isLead ? 'Current Active Lead Fighter' : 'Set as Lead Fighter for Battles'}
+                          >
+                            {isLead ? '★ LEAD' : '☆ SELECT'}
+                          </button>
+                          <button
+                            type="button"
+                            className="action-icon-btn"
+                            onClick={() => {
+                              Sound.playClick();
+                              setNicknameEditCreature(creature);
+                              setNicknameInput(creature.nickname);
+                            }}
+                            title="Rename creature"
+                          >
+                            ✏️
+                          </button>
                         </div>
                       </div>
                     );
@@ -1771,6 +1907,61 @@ export default function HomePage() {
 
                   {/* Combat Narration Dialog & Move Command Box */}
                   <div className="battle-controls">
+                    {/* Arena Action Bar: Turn Counter, Audio Mute, and Combat Log Drawer */}
+                    <div className="battle-action-toolbar">
+                      <div className="bat-turn-tag">
+                        TURN {String(activeEngine.currentTurn).padStart(2, '0')}
+                      </div>
+                      <div className="bat-tools-right">
+                        <button
+                          type="button"
+                          className="bat-tool-btn"
+                          onClick={() => {
+                            const res = Sound.toggle();
+                            setSoundEnabled(res);
+                          }}
+                          title="Toggle battle audio"
+                        >
+                          {soundEnabled ? '🔊 SFX' : '🔇 MUTE'}
+                        </button>
+                        <button
+                          type="button"
+                          className={`bat-tool-btn ${showCombatLog ? 'active' : ''}`}
+                          onClick={() => {
+                            Sound.playClick();
+                            setShowCombatLog(prev => !prev);
+                          }}
+                          title="Toggle combat log history"
+                        >
+                          📜 LOG ({combatLogEntries.length})
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Expandable Combat Log Drawer */}
+                    {showCombatLog && (
+                      <div className="battle-log-drawer">
+                        <div className="drawer-header">
+                          <span>MATCH HISTORY // COMBAT LOG</span>
+                          <button className="close-x" onClick={() => setShowCombatLog(false)}>✕</button>
+                        </div>
+                        <div className="drawer-body">
+                          {combatLogEntries.length === 0 ? (
+                            <div className="log-empty">No actions logged yet. Select a move to attack!</div>
+                          ) : (
+                            combatLogEntries.map((entry, idx) => (
+                              <div key={idx} className="log-turn-block">
+                                <div className="log-turn-head">── TURN {entry.turn} ──</div>
+                                {entry.logs.map((line, lIdx) => (
+                                  <div key={lIdx} className="log-line">{line}</div>
+                                ))}
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="battle-dialogue" id="battle-dialogue-text" ref={battleDialogueRef}>
                       {battleDialogue}
                     </div>
@@ -1935,6 +2126,16 @@ export default function HomePage() {
                     <button id="btn-export-json" className="pixel-btn" onClick={handleDownloadBackup}>
                       DOWNLOAD BACKUP
                     </button>
+                    <button id="btn-import-json" className="pixel-btn" onClick={() => backupFileInputRef.current?.click()}>
+                      RESTORE BACKUP
+                    </button>
+                    <input 
+                      type="file" 
+                      ref={backupFileInputRef} 
+                      style={{ display: 'none' }} 
+                      accept=".json,application/json" 
+                      onChange={handleImportBackupFile} 
+                    />
                     <button id="btn-reset-data" className="pixel-btn btn-danger" onClick={handleWipeData}>
                       WIPE ALL STORAGE
                     </button>
@@ -1955,23 +2156,23 @@ export default function HomePage() {
             </section>
 
             {/* ==================================================== */}
-            {/* VIEW 6: MONSTER LIST (DATABASE GRID MATCHING ART)    */}
+            {/* VIEW 6: MONSTER BESTIARY (50 ORIGINAL CREATURES)    */}
             {/* ==================================================== */}
             <section id="view-monsterlist" className={`view ${currentView === 'view-monsterlist' ? 'active' : ''}`}>
               <div className="monster-list-container">
-                {/* Topbar matching attached image */}
+                {/* Topbar */}
                 <div className="monster-list-topbar">
                   <div className="ml-topbar-left">
                     <span className="pokeball-icon">🔴</span>
                     <span>MONSTER LINK</span>
                     <span style={{ color: '#64748b' }}>/</span>
-                    <span style={{ color: '#ffffff' }}>MONSTER LIST</span>
+                    <span style={{ color: '#ffffff' }}>50 ORIGINAL MONSTERS</span>
                     <span style={{ color: '#64748b' }}>/</span>
-                    <span style={{ color: '#94a3b8' }}>PROTOTYPE 0.5</span>
+                    <span style={{ color: '#38bdf8' }}>BESTIARY</span>
                   </div>
                   <div className="ml-topbar-right" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ color: '#38bdf8', fontSize: '6.5px', letterSpacing: '1px', fontWeight: 'bold' }}>
-                      COLLECT . TRAIN . EVOLVE ▰▰
+                      COLLECT . TRAIN . BATTLE ▰▰
                     </span>
                     <button className="back-btn" onClick={() => navigateTo('view-menu')} style={{ padding: '2px 8px' }}>
                       ◀ MENU
@@ -1979,7 +2180,7 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                {/* Filter & Search Bar */}
+                {/* Filter & Sorting Controls */}
                 <div className="monster-list-controls">
                   <input
                     type="text"
@@ -1988,6 +2189,23 @@ export default function HomePage() {
                     value={monsterListSearch}
                     onChange={(e) => setMonsterListSearch(e.target.value)}
                   />
+                  
+                  {/* Sorting Bar */}
+                  <div className="monster-sort-row">
+                    <span className="sort-label">SORT:</span>
+                    {(['dex', 'name', 'hp', 'atk', 'def', 'spd'] as const).map(s => (
+                      <button
+                        key={s}
+                        type="button"
+                        className={`sort-pill ${monsterListSort === s ? 'active' : ''}`}
+                        onClick={() => { Sound.playClick(); setMonsterListSort(s); }}
+                      >
+                        {s === 'dex' ? '# DEX' : s.toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Element Filter Pills */}
                   <div className="monster-type-filter-row">
                     {['ALL', 'FIRE', 'WATER', 'GRASS', 'ELECTRIC', 'GHOST', 'ROCK', 'ICE', 'FLYING', 'FAIRY', 'STEEL', 'GROUND', 'DARK', 'DRAGON', 'POISON', 'NORMAL'].map(t => (
                       <button
@@ -2001,7 +2219,7 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                {/* Monster Grid matching uploaded screenshot */}
+                {/* Monster Grid */}
                 <div className="monster-grid-scroll">
                   {POKEMON_DATABASE
                     .filter(p => {
@@ -2014,16 +2232,32 @@ export default function HomePage() {
                       if (!isNaN(num) && p.pokedexNumber === num) return true;
                       return p.name.toLowerCase().includes(q) || p.displayName.toLowerCase().includes(q) || p.types.some(t => t.toLowerCase().includes(q));
                     })
+                    .sort((a, b) => {
+                      switch (monsterListSort) {
+                        case 'name': return a.displayName.localeCompare(b.displayName);
+                        case 'hp': return b.baseStats.hp - a.baseStats.hp;
+                        case 'atk': return b.baseStats.attack - a.baseStats.attack;
+                        case 'def': return b.baseStats.defense - a.baseStats.defense;
+                        case 'spd': return b.baseStats.speed - a.baseStats.speed;
+                        case 'dex':
+                        default:
+                          return a.pokedexNumber - b.pokedexNumber;
+                      }
+                    })
                     .map(p => {
                       const primaryType = (p.types[0] || 'normal').toLowerCase();
                       const primaryTypeCap = primaryType.charAt(0).toUpperCase() + primaryType.slice(1);
+                      const isApex = p.pokedexNumber >= 41 || p.pokedexNumber % 10 === 0;
+                      const isRare = !isApex && (p.pokedexNumber % 4 === 0);
                       return (
                         <div
                           key={p.pokedexNumber}
-                          className="monster-grid-card"
+                          className={`monster-grid-card ${isApex ? 'card-legendary' : isRare ? 'card-rare' : ''}`}
                           onClick={() => openMonsterModal(p)}
                           title={`Click to view ${p.displayName} & write to NFC`}
                         >
+                          {isApex && <div className="card-rarity-tag apex">★ APEX</div>}
+                          {isRare && <div className="card-rarity-tag rare">✦ RARE</div>}
                           <div className="mg-header">
                             {String(p.pokedexNumber).padStart(3, '0')} {p.displayName.toUpperCase().slice(0, 8)}
                           </div>
@@ -2042,10 +2276,10 @@ export default function HomePage() {
                     })}
                 </div>
 
-                {/* Footer Bar matching attached image */}
+                {/* Footer Bar */}
                 <div className="monster-list-bottombar">
-                  <span>MONSTER LINK // 050 CREATURES</span>
-                  <span>VERSION 0.5 // TAP CARD TO WRITE NFC</span>
+                  <span>MONSTER LINK // 50 CREATURES</span>
+                  <span>TAP ANY CARD TO VIEW STATS &amp; PROGRAM NTAG215</span>
                 </div>
               </div>
             </section>
@@ -2201,9 +2435,30 @@ export default function HomePage() {
                     <div className="pkmn-modal-hero">
                       <div className="pkmn-modal-artwork-box">
                         <img 
-                          src={getPokemonArtworkUrl(selectedMonsterForModal.pokedexNumber)} 
+                          src={modalSpriteView === 'back' && selectedMonsterForModal.sprites.backDefault 
+                            ? selectedMonsterForModal.sprites.backDefault 
+                            : (selectedMonsterForModal.sprites.frontDefault || getPokemonArtworkUrl(selectedMonsterForModal.pokedexNumber))} 
                           alt={selectedMonsterForModal.name} 
+                          style={{ imageRendering: 'pixelated' }}
                         />
+                        {selectedMonsterForModal.sprites.backDefault && (
+                          <div className="sprite-view-toggle">
+                            <button 
+                              type="button"
+                              className={`view-toggle-btn ${modalSpriteView === 'front' ? 'active' : ''}`}
+                              onClick={() => { Sound.playClick(); setModalSpriteView('front'); }}
+                            >
+                              FRONT
+                            </button>
+                            <button 
+                              type="button"
+                              className={`view-toggle-btn ${modalSpriteView === 'back' ? 'active' : ''}`}
+                              onClick={() => { Sound.playClick(); setModalSpriteView('back'); }}
+                            >
+                              BACK VIEW
+                            </button>
+                          </div>
+                        )}
                       </div>
                       <div className="pkmn-modal-hero-info">
                         <div className="pm-name">
@@ -2251,6 +2506,46 @@ export default function HomePage() {
                           </div>
                         </div>
                       ))}
+                    </div>
+
+                    {/* Learnable Moves with Tactical Status Badges */}
+                    <div className="pkmn-moves-section">
+                      <div style={{ fontSize: '7px', color: '#38bdf8', marginBottom: '4px', fontWeight: 'bold' }}>
+                        SIGNATURE MOVESET:
+                      </div>
+                      <div className="pkmn-moves-grid">
+                        {SPECIES_CATALOG[selectedMonsterForModal.speciesId]?.learnableMoveIds.map(mId => {
+                          const mv = MOVES[mId];
+                          if (!mv) return null;
+                          return (
+                            <div key={mId} className="pkmn-move-card">
+                              <div className="pkmn-move-header">
+                                <span className="pkmn-move-name">{mv.name}</span>
+                                <span className="pkmn-move-power">
+                                  {mv.statusEffect?.isProtect ? 'SHIELD' :
+                                   mv.statusEffect?.defenseBoostStages ? `DEF +${mv.statusEffect.defenseBoostStages}` :
+                                   mv.power === 0 ? 'BUFF' : `PWR ${mv.power}`}
+                                </span>
+                              </div>
+                              <div className="pkmn-move-sub">
+                                <span className={`type-pill type-${mv.type}`}>{mv.type}</span>
+                                {mv.statusEffect?.status && (
+                                  <span className={`status-pill ${mv.statusEffect.status}`}>
+                                    {mv.statusEffect.status.toUpperCase()} ({mv.statusEffect.chance}%)
+                                  </span>
+                                )}
+                                {mv.statusEffect?.isProtect && (
+                                  <span className="status-pill shield">100% BLOCK</span>
+                                )}
+                                {mv.statusEffect?.defenseBoostStages && (
+                                  <span className="status-pill def-buff">DEF ▲+{mv.statusEffect.defenseBoostStages}</span>
+                                )}
+                              </div>
+                              <div className="pkmn-move-desc">{mv.description}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
 
                     {/* NFC Writer & Verifier Section */}
@@ -2331,12 +2626,128 @@ export default function HomePage() {
                         >
                           <span>🧪 SIMULATE WRITE &amp; VERIFY (DESKTOP)</span>
                         </button>
+
+                        <button
+                          type="button"
+                          className="btn-enroll-collection"
+                          onClick={() => handleEnrollToCollection(selectedMonsterForModal.speciesId)}
+                        >
+                          <span>➕ ENROLL TO MY COLLECTION (DIRECT TEST)</span>
+                        </button>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
             )}
+
+            {/* Nickname Editor Modal */}
+            {nicknameEditCreature && (
+              <div className="modal-overlay" onClick={() => setNicknameEditCreature(null)}>
+                <div className="modal-box nickname-modal-box" onClick={(e) => e.stopPropagation()}>
+                  <div className="modal-header">
+                    <h3>RENAME CREATURE</h3>
+                    <button className="close-x" onClick={() => setNicknameEditCreature(null)}>✕</button>
+                  </div>
+                  <div className="modal-body" style={{ padding: '12px 4px' }}>
+                    <p style={{ fontSize: '7px', color: '#8da2c0', marginBottom: '8px' }}>
+                      Assign custom nickname for {nicknameEditCreature.nickname}:
+                    </p>
+                    <input 
+                      type="text" 
+                      maxLength={14} 
+                      className="nickname-input" 
+                      value={nicknameInput} 
+                      onChange={(e) => setNicknameInput(e.target.value)}
+                      placeholder="Enter new nickname..."
+                    />
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                      <button 
+                        type="button"
+                        className="pixel-btn btn-primary" 
+                        style={{ flex: 1 }}
+                        onClick={handleSaveNickname}
+                      >
+                        SAVE NICKNAME
+                      </button>
+                      <button 
+                        type="button"
+                        className="pixel-btn" 
+                        style={{ flex: 1 }}
+                        onClick={() => setNicknameEditCreature(null)}
+                      >
+                        CANCEL
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Persistent Cyberdeck Bottom Navigation Dock */}
+            <nav className="cyberdeck-dock" aria-label="Main Navigation">
+              <button 
+                type="button"
+                className={`dock-btn ${currentView === 'view-menu' ? 'active' : ''}`}
+                onClick={() => { Sound.playClick(); navigateTo('view-menu'); }}
+                title="Home Menu"
+              >
+                <span className="dock-led"></span>
+                <span className="dock-icon">🏠</span>
+                <span className="dock-text">HOME</span>
+              </button>
+              <button 
+                type="button"
+                className={`dock-btn ${currentView === 'view-monsterlist' ? 'active' : ''}`}
+                onClick={() => { Sound.playClick(); navigateTo('view-monsterlist'); }}
+                title="Monster Bestiary (50 Original Monsters)"
+              >
+                <span className="dock-led"></span>
+                <span className="dock-icon">👾</span>
+                <span className="dock-text">BESTIARY</span>
+              </button>
+              <button 
+                type="button"
+                className={`dock-btn ${currentView === 'view-collection' ? 'active' : ''}`}
+                onClick={() => { Sound.playClick(); navigateTo('view-collection'); }}
+                title="Your Monster Collection"
+              >
+                <span className="dock-led"></span>
+                <span className="dock-icon">📦</span>
+                <span className="dock-text">DECK</span>
+                {collection.length > 0 && <span className="dock-badge">{collection.length}</span>}
+              </button>
+              <button 
+                type="button"
+                className={`dock-btn ${currentView === 'view-battle' ? 'active' : ''}`}
+                onClick={() => { Sound.playClick(); navigateTo('view-battle'); }}
+                title="Battle Arena Combat"
+              >
+                <span className="dock-led"></span>
+                <span className="dock-icon">⚔️</span>
+                <span className="dock-text">BATTLE</span>
+              </button>
+              <button 
+                type="button"
+                className={`dock-btn ${currentView === 'view-scan' ? 'active' : ''}`}
+                onClick={() => { Sound.playClick(); navigateTo('view-scan'); }}
+                title="NFC Programmer & Reader"
+              >
+                <span className="dock-led"></span>
+                <span className="dock-icon">📡</span>
+                <span className="dock-text">NFC LAB</span>
+              </button>
+              <button 
+                type="button"
+                className={`dock-btn ${currentView === 'view-settings' ? 'active' : ''}`}
+                onClick={() => { Sound.playClick(); navigateTo('view-settings'); }}
+                title="Settings & Data Management"
+              >
+                <span className="dock-led"></span>
+                <span className="dock-icon">⚙️</span>
+                <span className="dock-text">CONFIG</span>
+              </button>
+            </nav>
 
           </div> {/* /screen */}
         </div> {/* /phone-frame */}
