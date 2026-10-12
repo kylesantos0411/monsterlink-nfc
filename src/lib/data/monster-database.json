@@ -1,0 +1,1908 @@
+{
+  "version": "0.5.0",
+  "source": "MONSTERLINK Original 50 Creatures Database",
+  "importedAt": "2026-10-12T04:48:00.341Z",
+  "totalCount": 50,
+  "pokemon": [
+    {
+      "pokedexNumber": 1,
+      "name": "flamby",
+      "displayName": "Flamby",
+      "speciesId": "species_flamby",
+      "types": [
+        "Fire"
+      ],
+      "primaryType": "Fire",
+      "height": 5,
+      "weight": 44,
+      "baseStats": {
+        "hp": 50,
+        "attack": 60,
+        "defense": 45,
+        "specialAttack": 65,
+        "specialDefense": 45,
+        "speed": 65
+      },
+      "abilities": [
+        "Blaze",
+        "Flame Body"
+      ],
+      "moves": [
+        "Flame Burst",
+        "Fire Fang",
+        "Tackle",
+        "Ember"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_001.png",
+        "frontShiny": "/monsters/monster_001.png",
+        "officialArtwork": "/monsters/monster_001.png"
+      },
+      "genus": "Flame Lizard Monster",
+      "description": "A fiery lizard with a vibrant burning tail. It releases bursts of sparks when energized.",
+      "cardCode": "ML-0001"
+    },
+    {
+      "pokedexNumber": 2,
+      "name": "aquat",
+      "displayName": "Aquat",
+      "speciesId": "species_aquat",
+      "types": [
+        "Water"
+      ],
+      "primaryType": "Water",
+      "height": 6,
+      "weight": 48,
+      "baseStats": {
+        "hp": 58,
+        "attack": 48,
+        "defense": 65,
+        "specialAttack": 50,
+        "specialDefense": 60,
+        "speed": 44
+      },
+      "abilities": [
+        "Torrent",
+        "Rain Dish"
+      ],
+      "moves": [
+        "Aqua Jet",
+        "Bubble Beam",
+        "Tackle",
+        "Shell Armor"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_002.png",
+        "frontShiny": "/monsters/monster_002.png",
+        "officialArtwork": "/monsters/monster_002.png"
+      },
+      "genus": "Tidal Turtle Monster",
+      "description": "Carries a stream-carved shell that repels heavy waves. Loves basking on warm riverbanks.",
+      "cardCode": "ML-0002"
+    },
+    {
+      "pokedexNumber": 3,
+      "name": "leafy",
+      "displayName": "Leafy",
+      "speciesId": "species_leafy",
+      "types": [
+        "Grass"
+      ],
+      "primaryType": "Grass",
+      "height": 6,
+      "weight": 52,
+      "baseStats": {
+        "hp": 60,
+        "attack": 52,
+        "defense": 55,
+        "specialAttack": 54,
+        "specialDefense": 58,
+        "speed": 46
+      },
+      "abilities": [
+        "Overgrow",
+        "Chlorophyll"
+      ],
+      "moves": [
+        "Vine Whip",
+        "Spore Blast",
+        "Tackle",
+        "Razor Leaf"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_003.png",
+        "frontShiny": "/monsters/monster_003.png",
+        "officialArtwork": "/monsters/monster_003.png"
+      },
+      "genus": "Sproutling Monster",
+      "description": "Grows a sweet-smelling sprout atop its head that blooms into sunlight.",
+      "cardCode": "ML-0003"
+    },
+    {
+      "pokedexNumber": 4,
+      "name": "sparki",
+      "displayName": "Sparki",
+      "speciesId": "species_sparki",
+      "types": [
+        "Electric"
+      ],
+      "primaryType": "Electric",
+      "height": 6,
+      "weight": 56,
+      "baseStats": {
+        "hp": 45,
+        "attack": 55,
+        "defense": 40,
+        "specialAttack": 60,
+        "specialDefense": 50,
+        "speed": 90
+      },
+      "abilities": [
+        "Static",
+        "Lightning Rod"
+      ],
+      "moves": [
+        "Spark Claw",
+        "Thunder Jolt",
+        "Quick Strike",
+        "Tackle"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_004.png",
+        "frontShiny": "/monsters/monster_004.png",
+        "officialArtwork": "/monsters/monster_004.png"
+      },
+      "genus": "Spark Mouse Monster",
+      "description": "Stores electrical energy in cheek pouches and darts across terrain at dizzying speed.",
+      "cardCode": "ML-0004"
+    },
+    {
+      "pokedexNumber": 5,
+      "name": "shade",
+      "displayName": "Shade",
+      "speciesId": "species_shade",
+      "types": [
+        "Ghost"
+      ],
+      "primaryType": "Ghost",
+      "height": 7,
+      "weight": 60,
+      "baseStats": {
+        "hp": 40,
+        "attack": 45,
+        "defense": 40,
+        "specialAttack": 75,
+        "specialDefense": 50,
+        "speed": 80
+      },
+      "abilities": [
+        "Levitate",
+        "Infiltrator"
+      ],
+      "moves": [
+        "Shadow Sneak",
+        "Night Shade",
+        "Spook",
+        "Tackle"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_005.png",
+        "frontShiny": "/monsters/monster_005.png",
+        "officialArtwork": "/monsters/monster_005.png"
+      },
+      "genus": "Shadow Sprite Monster",
+      "description": "Appears as a mischievous orb of purple shadows that floats silently through walls.",
+      "cardCode": "ML-0005"
+    },
+    {
+      "pokedexNumber": 6,
+      "name": "rocky",
+      "displayName": "Rocky",
+      "speciesId": "species_rocky",
+      "types": [
+        "Rock"
+      ],
+      "primaryType": "Rock",
+      "height": 7,
+      "weight": 64,
+      "baseStats": {
+        "hp": 65,
+        "attack": 70,
+        "defense": 85,
+        "specialAttack": 30,
+        "specialDefense": 55,
+        "speed": 30
+      },
+      "abilities": [
+        "Solid Rock",
+        "Sturdy"
+      ],
+      "moves": [
+        "Rock Throw",
+        "Stone Edge",
+        "Tackle",
+        "Harden"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_006.png",
+        "frontShiny": "/monsters/monster_006.png",
+        "officialArtwork": "/monsters/monster_006.png"
+      },
+      "genus": "Stone Golem Monster",
+      "description": "Formed from compacted river rocks. Its rugged exterior shrugs off direct impacts.",
+      "cardCode": "ML-0006"
+    },
+    {
+      "pokedexNumber": 7,
+      "name": "frosty",
+      "displayName": "Frosty",
+      "speciesId": "species_frosty",
+      "types": [
+        "Ice"
+      ],
+      "primaryType": "Ice",
+      "height": 7,
+      "weight": 68,
+      "baseStats": {
+        "hp": 48,
+        "attack": 50,
+        "defense": 45,
+        "specialAttack": 62,
+        "specialDefense": 55,
+        "speed": 70
+      },
+      "abilities": [
+        "Snow Cloak",
+        "Slush Rush"
+      ],
+      "moves": [
+        "Ice Shard",
+        "Frost Breath",
+        "Tackle",
+        "Quick Strike"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_007.png",
+        "frontShiny": "/monsters/monster_007.png",
+        "officialArtwork": "/monsters/monster_007.png"
+      },
+      "genus": "Frost Pup Monster",
+      "description": "A loyal arctic pup whose icy coat sparkles in the winter sun.",
+      "cardCode": "ML-0007"
+    },
+    {
+      "pokedexNumber": 8,
+      "name": "skyler",
+      "displayName": "Skyler",
+      "speciesId": "species_skyler",
+      "types": [
+        "Flying"
+      ],
+      "primaryType": "Flying",
+      "height": 7,
+      "weight": 72,
+      "baseStats": {
+        "hp": 46,
+        "attack": 55,
+        "defense": 42,
+        "specialAttack": 45,
+        "specialDefense": 45,
+        "speed": 78
+      },
+      "abilities": [
+        "Keen Eye",
+        "Early Bird"
+      ],
+      "moves": [
+        "Gust",
+        "Wing Attack",
+        "Quick Strike",
+        "Tackle"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_008.png",
+        "frontShiny": "/monsters/monster_008.png",
+        "officialArtwork": "/monsters/monster_008.png"
+      },
+      "genus": "Sky Fledgling Monster",
+      "description": "Spreads bright scarlet feathers to ride mountain upwinds without tiring.",
+      "cardCode": "ML-0008"
+    },
+    {
+      "pokedexNumber": 9,
+      "name": "bubble",
+      "displayName": "Bubble",
+      "speciesId": "species_bubble",
+      "types": [
+        "Fairy"
+      ],
+      "primaryType": "Fairy",
+      "height": 8,
+      "weight": 76,
+      "baseStats": {
+        "hp": 65,
+        "attack": 40,
+        "defense": 50,
+        "specialAttack": 65,
+        "specialDefense": 65,
+        "speed": 45
+      },
+      "abilities": [
+        "Cute Charm",
+        "Unaware"
+      ],
+      "moves": [
+        "Fairy Wind",
+        "Bubble Beam",
+        "Charm",
+        "Tackle"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_009.png",
+        "frontShiny": "/monsters/monster_009.png",
+        "officialArtwork": "/monsters/monster_009.png"
+      },
+      "genus": "Pink Axolotl Monster",
+      "description": "A gentle amphibian that blows iridescent floating bubbles full of comforting essence.",
+      "cardCode": "ML-0009"
+    },
+    {
+      "pokedexNumber": 10,
+      "name": "magnix",
+      "displayName": "Magnix",
+      "speciesId": "species_magnix",
+      "types": [
+        "Steel"
+      ],
+      "primaryType": "Steel",
+      "height": 8,
+      "weight": 80,
+      "baseStats": {
+        "hp": 45,
+        "attack": 40,
+        "defense": 80,
+        "specialAttack": 70,
+        "specialDefense": 60,
+        "speed": 45
+      },
+      "abilities": [
+        "Magnet Pull",
+        "Sturdy"
+      ],
+      "moves": [
+        "Flash Cannon",
+        "Magnet Bomb",
+        "Spark Claw",
+        "Tackle"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_010.png",
+        "frontShiny": "/monsters/monster_010.png",
+        "officialArtwork": "/monsters/monster_010.png"
+      },
+      "genus": "Magnetic Eye Monster",
+      "description": "Hovering metallic sphere that detects magnetic poles and repels rival metals.",
+      "cardCode": "ML-0010"
+    },
+    {
+      "pokedexNumber": 11,
+      "name": "blazik",
+      "displayName": "Blazik",
+      "speciesId": "species_blazik",
+      "types": [
+        "Fire"
+      ],
+      "primaryType": "Fire",
+      "height": 8,
+      "weight": 84,
+      "baseStats": {
+        "hp": 70,
+        "attack": 85,
+        "defense": 65,
+        "specialAttack": 90,
+        "specialDefense": 65,
+        "speed": 85
+      },
+      "abilities": [
+        "Flash Fire",
+        "Blaze"
+      ],
+      "moves": [
+        "Flame Burst",
+        "Fire Fang",
+        "Flamethrower",
+        "Dragon Breath"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_011.png",
+        "frontShiny": "/monsters/monster_011.png",
+        "officialArtwork": "/monsters/monster_011.png"
+      },
+      "genus": "Ember Drake Monster",
+      "description": "A fierce bipedal drake enveloped in intense combustion flames.",
+      "cardCode": "ML-0011"
+    },
+    {
+      "pokedexNumber": 12,
+      "name": "tidely",
+      "displayName": "Tidely",
+      "speciesId": "species_tidely",
+      "types": [
+        "Water"
+      ],
+      "primaryType": "Water",
+      "height": 9,
+      "weight": 88,
+      "baseStats": {
+        "hp": 65,
+        "attack": 65,
+        "defense": 60,
+        "specialAttack": 80,
+        "specialDefense": 70,
+        "speed": 88
+      },
+      "abilities": [
+        "Swift Swim",
+        "Water Veil"
+      ],
+      "moves": [
+        "Aqua Jet",
+        "Bubble Beam",
+        "Hydro Pump",
+        "Quick Strike"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_012.png",
+        "frontShiny": "/monsters/monster_012.png",
+        "officialArtwork": "/monsters/monster_012.png"
+      },
+      "genus": "Wave Cat Monster",
+      "description": "Dances effortlessly on ocean waves with fluid, feline agility.",
+      "cardCode": "ML-0012"
+    },
+    {
+      "pokedexNumber": 13,
+      "name": "vinelo",
+      "displayName": "Vinelo",
+      "speciesId": "species_vinelo",
+      "types": [
+        "Grass"
+      ],
+      "primaryType": "Grass",
+      "height": 9,
+      "weight": 92,
+      "baseStats": {
+        "hp": 68,
+        "attack": 72,
+        "defense": 70,
+        "specialAttack": 78,
+        "specialDefense": 75,
+        "speed": 75
+      },
+      "abilities": [
+        "Shed Skin",
+        "Overgrow"
+      ],
+      "moves": [
+        "Vine Whip",
+        "Leaf Blade",
+        "Spore Blast",
+        "Coil"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_013.png",
+        "frontShiny": "/monsters/monster_013.png",
+        "officialArtwork": "/monsters/monster_013.png"
+      },
+      "genus": "Vine Serpent Monster",
+      "description": "A serpentine forest wanderer that binds targets with living briar cords.",
+      "cardCode": "ML-0013"
+    },
+    {
+      "pokedexNumber": 14,
+      "name": "voltic",
+      "displayName": "Voltic",
+      "speciesId": "species_voltic",
+      "types": [
+        "Electric"
+      ],
+      "primaryType": "Electric",
+      "height": 9,
+      "weight": 96,
+      "baseStats": {
+        "hp": 65,
+        "attack": 82,
+        "defense": 60,
+        "specialAttack": 80,
+        "specialDefense": 60,
+        "speed": 92
+      },
+      "abilities": [
+        "Motor Drive",
+        "Static"
+      ],
+      "moves": [
+        "Spark Claw",
+        "Thunder Jolt",
+        "Wild Charge",
+        "Bite"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_014.png",
+        "frontShiny": "/monsters/monster_014.png",
+        "officialArtwork": "/monsters/monster_014.png"
+      },
+      "genus": "Voltic Badger Monster",
+      "description": "Channels underground electrical currents into devastating lightning rushes.",
+      "cardCode": "ML-0014"
+    },
+    {
+      "pokedexNumber": 15,
+      "name": "phantom",
+      "displayName": "Phantom",
+      "speciesId": "species_phantom",
+      "types": [
+        "Ghost"
+      ],
+      "primaryType": "Ghost",
+      "height": 10,
+      "weight": 100,
+      "baseStats": {
+        "hp": 60,
+        "attack": 65,
+        "defense": 60,
+        "specialAttack": 105,
+        "specialDefense": 75,
+        "speed": 100
+      },
+      "abilities": [
+        "Cursed Body",
+        "Levitate"
+      ],
+      "moves": [
+        "Shadow Sneak",
+        "Night Shade",
+        "Hex",
+        "Dark Pulse"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_015.png",
+        "frontShiny": "/monsters/monster_015.png",
+        "officialArtwork": "/monsters/monster_015.png"
+      },
+      "genus": "Night Wraith Monster",
+      "description": "A menacing wraith that feeds on twilight mist and vanishes into darkness.",
+      "cardCode": "ML-0015"
+    },
+    {
+      "pokedexNumber": 16,
+      "name": "terra",
+      "displayName": "Terra",
+      "speciesId": "species_terra",
+      "types": [
+        "Ground"
+      ],
+      "primaryType": "Ground",
+      "height": 10,
+      "weight": 104,
+      "baseStats": {
+        "hp": 80,
+        "attack": 85,
+        "defense": 105,
+        "specialAttack": 45,
+        "specialDefense": 70,
+        "speed": 55
+      },
+      "abilities": [
+        "Battle Armor",
+        "Sand Force"
+      ],
+      "moves": [
+        "Earthquake",
+        "Dig",
+        "Rock Throw",
+        "Tackle"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_016.png",
+        "frontShiny": "/monsters/monster_016.png",
+        "officialArtwork": "/monsters/monster_016.png"
+      },
+      "genus": "Armored Pangolin Monster",
+      "description": "Rolls into an impenetrable tectonic sphere capable of carving ravines.",
+      "cardCode": "ML-0016"
+    },
+    {
+      "pokedexNumber": 17,
+      "name": "glacia",
+      "displayName": "Glacia",
+      "speciesId": "species_glacia",
+      "types": [
+        "Ice"
+      ],
+      "primaryType": "Ice",
+      "height": 10,
+      "weight": 108,
+      "baseStats": {
+        "hp": 65,
+        "attack": 60,
+        "defense": 65,
+        "specialAttack": 95,
+        "specialDefense": 90,
+        "speed": 85
+      },
+      "abilities": [
+        "Snow Cloak",
+        "Ice Body"
+      ],
+      "moves": [
+        "Ice Shard",
+        "Frost Breath",
+        "Blizzard",
+        "Quick Strike"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_017.png",
+        "frontShiny": "/monsters/monster_017.png",
+        "officialArtwork": "/monsters/monster_017.png"
+      },
+      "genus": "Arctic Fox Monster",
+      "description": "Prowls frozen tundras leaving behind a trail of pristine crystalline snowflakes.",
+      "cardCode": "ML-0017"
+    },
+    {
+      "pokedexNumber": 18,
+      "name": "zephyr",
+      "displayName": "Zephyr",
+      "speciesId": "species_zephyr",
+      "types": [
+        "Flying"
+      ],
+      "primaryType": "Flying",
+      "height": 10,
+      "weight": 112,
+      "baseStats": {
+        "hp": 72,
+        "attack": 85,
+        "defense": 68,
+        "specialAttack": 70,
+        "specialDefense": 65,
+        "speed": 102
+      },
+      "abilities": [
+        "Gale Wings",
+        "Keen Eye"
+      ],
+      "moves": [
+        "Gust",
+        "Air Slash",
+        "Wing Attack",
+        "Quick Strike"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_018.png",
+        "frontShiny": "/monsters/monster_018.png",
+        "officialArtwork": "/monsters/monster_018.png"
+      },
+      "genus": "Gale Raptor Monster",
+      "description": "Soars through storm currents and cuts the air with razor-sharp azure wings.",
+      "cardCode": "ML-0018"
+    },
+    {
+      "pokedexNumber": 19,
+      "name": "cotton",
+      "displayName": "Cotton",
+      "speciesId": "species_cotton",
+      "types": [
+        "Fairy"
+      ],
+      "primaryType": "Fairy",
+      "height": 11,
+      "weight": 116,
+      "baseStats": {
+        "hp": 85,
+        "attack": 50,
+        "defense": 75,
+        "specialAttack": 80,
+        "specialDefense": 90,
+        "speed": 60
+      },
+      "abilities": [
+        "Fluffy",
+        "Cute Charm"
+      ],
+      "moves": [
+        "Fairy Wind",
+        "Dazzling Gleam",
+        "Charm",
+        "Tackle"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_019.png",
+        "frontShiny": "/monsters/monster_019.png",
+        "officialArtwork": "/monsters/monster_019.png"
+      },
+      "genus": "Cotton Lamb Monster",
+      "description": "Wrapped in cloud-like fleece that absorbs kinetic shocks and heals allies.",
+      "cardCode": "ML-0019"
+    },
+    {
+      "pokedexNumber": 20,
+      "name": "forge",
+      "displayName": "Forge",
+      "speciesId": "species_forge",
+      "types": [
+        "Steel"
+      ],
+      "primaryType": "Steel",
+      "height": 11,
+      "weight": 120,
+      "baseStats": {
+        "hp": 82,
+        "attack": 100,
+        "defense": 110,
+        "specialAttack": 60,
+        "specialDefense": 75,
+        "speed": 42
+      },
+      "abilities": [
+        "Heatproof",
+        "Sturdy"
+      ],
+      "moves": [
+        "Iron Head",
+        "Stone Edge",
+        "Flame Burst",
+        "Heavy Slam"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_020.png",
+        "frontShiny": "/monsters/monster_020.png",
+        "officialArtwork": "/monsters/monster_020.png"
+      },
+      "genus": "Molten Automaton Monster",
+      "description": "Constructed from primordial basalt and molten core ore, striking like an anvil.",
+      "cardCode": "ML-0020"
+    },
+    {
+      "pokedexNumber": 21,
+      "name": "lumi",
+      "displayName": "Lumi",
+      "speciesId": "species_lumi",
+      "types": [
+        "Electric"
+      ],
+      "primaryType": "Electric",
+      "height": 11,
+      "weight": 124,
+      "baseStats": {
+        "hp": 55,
+        "attack": 50,
+        "defense": 50,
+        "specialAttack": 85,
+        "specialDefense": 65,
+        "speed": 105
+      },
+      "abilities": [
+        "Speed Boost",
+        "Run Away"
+      ],
+      "moves": [
+        "Thunder Jolt",
+        "Spark Claw",
+        "Quick Strike",
+        "Agility"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_021.png",
+        "frontShiny": "/monsters/monster_021.png",
+        "officialArtwork": "/monsters/monster_021.png"
+      },
+      "genus": "Light Hare Monster",
+      "description": "An energetic creature glowing with bioluminescent sparks across its ears.",
+      "cardCode": "ML-0021"
+    },
+    {
+      "pokedexNumber": 22,
+      "name": "muddle",
+      "displayName": "Muddle",
+      "speciesId": "species_muddle",
+      "types": [
+        "Ground"
+      ],
+      "primaryType": "Ground",
+      "height": 12,
+      "weight": 128,
+      "baseStats": {
+        "hp": 90,
+        "attack": 80,
+        "defense": 85,
+        "specialAttack": 50,
+        "specialDefense": 65,
+        "speed": 35
+      },
+      "abilities": [
+        "Sand Veil",
+        "Water Absorb"
+      ],
+      "moves": [
+        "Mud Slap",
+        "Earthquake",
+        "Rock Throw",
+        "Tackle"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_022.png",
+        "frontShiny": "/monsters/monster_022.png",
+        "officialArtwork": "/monsters/monster_022.png"
+      },
+      "genus": "Clay Brute Monster",
+      "description": "Shaped from fertile river clay, absorbing concussive blows without injury.",
+      "cardCode": "ML-0022"
+    },
+    {
+      "pokedexNumber": 23,
+      "name": "searin",
+      "displayName": "Searin",
+      "speciesId": "species_searin",
+      "types": [
+        "Fire"
+      ],
+      "primaryType": "Fire",
+      "height": 12,
+      "weight": 132,
+      "baseStats": {
+        "hp": 68,
+        "attack": 90,
+        "defense": 60,
+        "specialAttack": 75,
+        "specialDefense": 60,
+        "speed": 86
+      },
+      "abilities": [
+        "Intimidate",
+        "Flash Fire"
+      ],
+      "moves": [
+        "Fire Fang",
+        "Flame Burst",
+        "Crunch",
+        "Tackle"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_023.png",
+        "frontShiny": "/monsters/monster_023.png",
+        "officialArtwork": "/monsters/monster_023.png"
+      },
+      "genus": "Flame Hound Monster",
+      "description": "A loyal canine surrounded by licking tongues of fire, baying at full moons.",
+      "cardCode": "ML-0023"
+    },
+    {
+      "pokedexNumber": 24,
+      "name": "surge",
+      "displayName": "Surge",
+      "speciesId": "species_surge",
+      "types": [
+        "Electric"
+      ],
+      "primaryType": "Electric",
+      "height": 12,
+      "weight": 136,
+      "baseStats": {
+        "hp": 75,
+        "attack": 92,
+        "defense": 68,
+        "specialAttack": 85,
+        "specialDefense": 70,
+        "speed": 98
+      },
+      "abilities": [
+        "Volt Absorb",
+        "Static"
+      ],
+      "moves": [
+        "Thunder Jolt",
+        "Spark Claw",
+        "Quick Strike",
+        "Howl"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_024.png",
+        "frontShiny": "/monsters/monster_024.png",
+        "officialArtwork": "/monsters/monster_024.png"
+      },
+      "genus": "Storm Wolf Monster",
+      "description": "Races ahead of thunderstorms, unleashing dazzling electrical howling.",
+      "cardCode": "ML-0024"
+    },
+    {
+      "pokedexNumber": 25,
+      "name": "bloomy",
+      "displayName": "Bloomy",
+      "speciesId": "species_bloomy",
+      "types": [
+        "Grass"
+      ],
+      "primaryType": "Grass",
+      "height": 13,
+      "weight": 140,
+      "baseStats": {
+        "hp": 82,
+        "attack": 75,
+        "defense": 80,
+        "specialAttack": 88,
+        "specialDefense": 85,
+        "speed": 60
+      },
+      "abilities": [
+        "Chlorophyll",
+        "Overgrow"
+      ],
+      "moves": [
+        "Vine Whip",
+        "Spore Blast",
+        "Razor Leaf",
+        "Tackle"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_025.png",
+        "frontShiny": "/monsters/monster_025.png",
+        "officialArtwork": "/monsters/monster_025.png"
+      },
+      "genus": "Floral Dino Monster",
+      "description": "A joyful quadruped with giant pink petals that bask in tropical daylight.",
+      "cardCode": "ML-0025"
+    },
+    {
+      "pokedexNumber": 26,
+      "name": "coralis",
+      "displayName": "Coralis",
+      "speciesId": "species_coralis",
+      "types": [
+        "Water"
+      ],
+      "primaryType": "Water",
+      "height": 13,
+      "weight": 144,
+      "baseStats": {
+        "hp": 78,
+        "attack": 55,
+        "defense": 82,
+        "specialAttack": 96,
+        "specialDefense": 95,
+        "speed": 64
+      },
+      "abilities": [
+        "Liquid Ooze",
+        "Rain Dish"
+      ],
+      "moves": [
+        "Aqua Jet",
+        "Bubble Beam",
+        "Hydro Pump",
+        "Tackle"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_026.png",
+        "frontShiny": "/monsters/monster_026.png",
+        "officialArtwork": "/monsters/monster_026.png"
+      },
+      "genus": "Reef Medusa Monster",
+      "description": "A bioluminescent jellyfish floating above coral trenches with gentle grace.",
+      "cardCode": "ML-0026"
+    },
+    {
+      "pokedexNumber": 27,
+      "name": "howlie",
+      "displayName": "Howlie",
+      "speciesId": "species_howlie",
+      "types": [
+        "Dark"
+      ],
+      "primaryType": "Dark",
+      "height": 13,
+      "weight": 148,
+      "baseStats": {
+        "hp": 70,
+        "attack": 88,
+        "defense": 65,
+        "specialAttack": 65,
+        "specialDefense": 60,
+        "speed": 88
+      },
+      "abilities": [
+        "Dark Aura",
+        "Infiltrator"
+      ],
+      "moves": [
+        "Bite",
+        "Dark Pulse",
+        "Quick Strike",
+        "Snarl"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_027.png",
+        "frontShiny": "/monsters/monster_027.png",
+        "officialArtwork": "/monsters/monster_027.png"
+      },
+      "genus": "Shadow Lupine Monster",
+      "description": "Stalks moonlit ridges, hunting in coordinated packs beneath dark canopies.",
+      "cardCode": "ML-0027"
+    },
+    {
+      "pokedexNumber": 28,
+      "name": "pixie",
+      "displayName": "Pixie",
+      "speciesId": "species_pixie",
+      "types": [
+        "Fairy"
+      ],
+      "primaryType": "Fairy",
+      "height": 13,
+      "weight": 152,
+      "baseStats": {
+        "hp": 62,
+        "attack": 48,
+        "defense": 58,
+        "specialAttack": 92,
+        "specialDefense": 85,
+        "speed": 95
+      },
+      "abilities": [
+        "Magic Guard",
+        "Cute Charm"
+      ],
+      "moves": [
+        "Fairy Wind",
+        "Dazzling Gleam",
+        "Charm",
+        "Quick Strike"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_028.png",
+        "frontShiny": "/monsters/monster_028.png",
+        "officialArtwork": "/monsters/monster_028.png"
+      },
+      "genus": "Starlight Sprite Monster",
+      "description": "Flutters on gossamer wings, leaving behind luminous trails of wishing stardust.",
+      "cardCode": "ML-0028"
+    },
+    {
+      "pokedexNumber": 29,
+      "name": "stonix",
+      "displayName": "Stonix",
+      "speciesId": "species_stonix",
+      "types": [
+        "Rock"
+      ],
+      "primaryType": "Rock",
+      "height": 14,
+      "weight": 156,
+      "baseStats": {
+        "hp": 75,
+        "attack": 85,
+        "defense": 115,
+        "specialAttack": 40,
+        "specialDefense": 65,
+        "speed": 40
+      },
+      "abilities": [
+        "Sturdy",
+        "Solid Rock"
+      ],
+      "moves": [
+        "Rock Throw",
+        "Stone Edge",
+        "Earthquake",
+        "Tackle"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_029.png",
+        "frontShiny": "/monsters/monster_029.png",
+        "officialArtwork": "/monsters/monster_029.png"
+      },
+      "genus": "Boulder Worm Monster",
+      "description": "A massive serpentine beast composed of interlocking granite boulders.",
+      "cardCode": "ML-0029"
+    },
+    {
+      "pokedexNumber": 30,
+      "name": "volcano",
+      "displayName": "Volcano",
+      "speciesId": "species_volcano",
+      "types": [
+        "Fire"
+      ],
+      "primaryType": "Fire",
+      "height": 14,
+      "weight": 160,
+      "baseStats": {
+        "hp": 85,
+        "attack": 95,
+        "defense": 90,
+        "specialAttack": 95,
+        "specialDefense": 75,
+        "speed": 50
+      },
+      "abilities": [
+        "Magma Armor",
+        "Flame Body"
+      ],
+      "moves": [
+        "Flame Burst",
+        "Fire Fang",
+        "Eruption",
+        "Earthquake"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_030.png",
+        "frontShiny": "/monsters/monster_030.png",
+        "officialArtwork": "/monsters/monster_030.png"
+      },
+      "genus": "Magma Beast Monster",
+      "description": "Houses a molten caldera on its back that periodically spews incandescent slag.",
+      "cardCode": "ML-0030"
+    },
+    {
+      "pokedexNumber": 31,
+      "name": "aquilo",
+      "displayName": "Aquilo",
+      "speciesId": "species_aquilo",
+      "types": [
+        "Ice"
+      ],
+      "primaryType": "Ice",
+      "height": 14,
+      "weight": 164,
+      "baseStats": {
+        "hp": 88,
+        "attack": 82,
+        "defense": 80,
+        "specialAttack": 94,
+        "specialDefense": 88,
+        "speed": 84
+      },
+      "abilities": [
+        "Ice Body",
+        "Snow Cloak"
+      ],
+      "moves": [
+        "Ice Shard",
+        "Frost Breath",
+        "Blizzard",
+        "Tackle"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_031.png",
+        "frontShiny": "/monsters/monster_031.png",
+        "officialArtwork": "/monsters/monster_031.png"
+      },
+      "genus": "Glacier Stag Monster",
+      "description": "Noble mountain stag bearing frosted antlers of pure crystalline ice.",
+      "cardCode": "ML-0031"
+    },
+    {
+      "pokedexNumber": 32,
+      "name": "thunder",
+      "displayName": "Thunder",
+      "speciesId": "species_thunder",
+      "types": [
+        "Electric"
+      ],
+      "primaryType": "Electric",
+      "height": 15,
+      "weight": 168,
+      "baseStats": {
+        "hp": 80,
+        "attack": 102,
+        "defense": 72,
+        "specialAttack": 98,
+        "specialDefense": 70,
+        "speed": 104
+      },
+      "abilities": [
+        "Lightning Rod",
+        "Static"
+      ],
+      "moves": [
+        "Thunder Jolt",
+        "Spark Claw",
+        "Wild Charge",
+        "Quick Strike"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_032.png",
+        "frontShiny": "/monsters/monster_032.png",
+        "officialArtwork": "/monsters/monster_032.png"
+      },
+      "genus": "Lightning Beast Monster",
+      "description": "An avatar of storm electricity whose stride generates thunderous sonic booms.",
+      "cardCode": "ML-0032"
+    },
+    {
+      "pokedexNumber": 33,
+      "name": "lurk",
+      "displayName": "Lurk",
+      "speciesId": "species_lurk",
+      "types": [
+        "Dark"
+      ],
+      "primaryType": "Dark",
+      "height": 15,
+      "weight": 172,
+      "baseStats": {
+        "hp": 68,
+        "attack": 94,
+        "defense": 62,
+        "specialAttack": 72,
+        "specialDefense": 64,
+        "speed": 98
+      },
+      "abilities": [
+        "Infiltrator",
+        "Keen Eye"
+      ],
+      "moves": [
+        "Bite",
+        "Dark Pulse",
+        "Shadow Sneak",
+        "Quick Strike"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_033.png",
+        "frontShiny": "/monsters/monster_033.png",
+        "officialArtwork": "/monsters/monster_033.png"
+      },
+      "genus": "Abyssal Feline Monster",
+      "description": "Slinks soundlessly through midnight shadows, eyes glowing with piercing violet.",
+      "cardCode": "ML-0033"
+    },
+    {
+      "pokedexNumber": 34,
+      "name": "petal",
+      "displayName": "Petal",
+      "speciesId": "species_petal",
+      "types": [
+        "Fairy"
+      ],
+      "primaryType": "Fairy",
+      "height": 15,
+      "weight": 176,
+      "baseStats": {
+        "hp": 74,
+        "attack": 65,
+        "defense": 70,
+        "specialAttack": 96,
+        "specialDefense": 92,
+        "speed": 85
+      },
+      "abilities": [
+        "Serene Grace",
+        "Cute Charm"
+      ],
+      "moves": [
+        "Fairy Wind",
+        "Dazzling Gleam",
+        "Vine Whip",
+        "Charm"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_034.png",
+        "frontShiny": "/monsters/monster_034.png",
+        "officialArtwork": "/monsters/monster_034.png"
+      },
+      "genus": "Blossom Fox Monster",
+      "description": "Groomed with fresh cherry blossoms, bringing prosperity to wildflower valleys.",
+      "cardCode": "ML-0034"
+    },
+    {
+      "pokedexNumber": 35,
+      "name": "crowl",
+      "displayName": "Crowl",
+      "speciesId": "species_crowl",
+      "types": [
+        "Flying"
+      ],
+      "primaryType": "Flying",
+      "height": 16,
+      "weight": 180,
+      "baseStats": {
+        "hp": 76,
+        "attack": 86,
+        "defense": 74,
+        "specialAttack": 78,
+        "specialDefense": 70,
+        "speed": 90
+      },
+      "abilities": [
+        "Super Luck",
+        "Keen Eye"
+      ],
+      "moves": [
+        "Gust",
+        "Air Slash",
+        "Bite",
+        "Quick Strike"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_035.png",
+        "frontShiny": "/monsters/monster_035.png",
+        "officialArtwork": "/monsters/monster_035.png"
+      },
+      "genus": "Raven Warden Monster",
+      "description": "A watchful corvid that scouts terrain from the clouds with tactical intellect.",
+      "cardCode": "ML-0035"
+    },
+    {
+      "pokedexNumber": 36,
+      "name": "boltie",
+      "displayName": "Boltie",
+      "speciesId": "species_boltie",
+      "types": [
+        "Electric"
+      ],
+      "primaryType": "Electric",
+      "height": 16,
+      "weight": 184,
+      "baseStats": {
+        "hp": 60,
+        "attack": 78,
+        "defense": 58,
+        "specialAttack": 82,
+        "specialDefense": 60,
+        "speed": 108
+      },
+      "abilities": [
+        "Motor Drive",
+        "Static"
+      ],
+      "moves": [
+        "Spark Claw",
+        "Thunder Jolt",
+        "Quick Strike",
+        "Tackle"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_036.png",
+        "frontShiny": "/monsters/monster_036.png",
+        "officialArtwork": "/monsters/monster_036.png"
+      },
+      "genus": "Zap Rodent Monster",
+      "description": "Zips between tree trunks like a golden streak of living electrostatic charge.",
+      "cardCode": "ML-0036"
+    },
+    {
+      "pokedexNumber": 37,
+      "name": "shelly",
+      "displayName": "Shelly",
+      "speciesId": "species_shelly",
+      "types": [
+        "Water"
+      ],
+      "primaryType": "Water",
+      "height": 16,
+      "weight": 188,
+      "baseStats": {
+        "hp": 85,
+        "attack": 65,
+        "defense": 105,
+        "specialAttack": 75,
+        "specialDefense": 95,
+        "speed": 40
+      },
+      "abilities": [
+        "Shell Armor",
+        "Torrent"
+      ],
+      "moves": [
+        "Aqua Jet",
+        "Bubble Beam",
+        "Tackle",
+        "Shell Armor"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_037.png",
+        "frontShiny": "/monsters/monster_037.png",
+        "officialArtwork": "/monsters/monster_037.png"
+      },
+      "genus": "Coral Tortoise Monster",
+      "description": "Nurtures miniature coral ecosystems upon its durable nautical carapace.",
+      "cardCode": "ML-0037"
+    },
+    {
+      "pokedexNumber": 38,
+      "name": "rooter",
+      "displayName": "Rooter",
+      "speciesId": "species_rooter",
+      "types": [
+        "Grass"
+      ],
+      "primaryType": "Grass",
+      "height": 16,
+      "weight": 192,
+      "baseStats": {
+        "hp": 96,
+        "attack": 94,
+        "defense": 98,
+        "specialAttack": 68,
+        "specialDefense": 86,
+        "speed": 42
+      },
+      "abilities": [
+        "Natural Cure",
+        "Overgrow"
+      ],
+      "moves": [
+        "Vine Whip",
+        "Spore Blast",
+        "Earthquake",
+        "Tackle"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_038.png",
+        "frontShiny": "/monsters/monster_038.png",
+        "officialArtwork": "/monsters/monster_038.png"
+      },
+      "genus": "Ancient Treant Monster",
+      "description": "Ancient protector of forest groves, towering with massive oak branches.",
+      "cardCode": "ML-0038"
+    },
+    {
+      "pokedexNumber": 39,
+      "name": "drizzy",
+      "displayName": "Drizzy",
+      "speciesId": "species_drizzy",
+      "types": [
+        "Water"
+      ],
+      "primaryType": "Water",
+      "height": 17,
+      "weight": 196,
+      "baseStats": {
+        "hp": 82,
+        "attack": 84,
+        "defense": 78,
+        "specialAttack": 92,
+        "specialDefense": 80,
+        "speed": 86
+      },
+      "abilities": [
+        "Drizzle",
+        "Swift Swim"
+      ],
+      "moves": [
+        "Aqua Jet",
+        "Bubble Beam",
+        "Hydro Pump",
+        "Quick Strike"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_039.png",
+        "frontShiny": "/monsters/monster_039.png",
+        "officialArtwork": "/monsters/monster_039.png"
+      },
+      "genus": "Rain Drake Monster",
+      "description": "Summons gentle refreshing showers wherever it glides over dry lands.",
+      "cardCode": "ML-0039"
+    },
+    {
+      "pokedexNumber": 40,
+      "name": "sandy",
+      "displayName": "Sandy",
+      "speciesId": "species_sandy",
+      "types": [
+        "Ground"
+      ],
+      "primaryType": "Ground",
+      "height": 17,
+      "weight": 200,
+      "baseStats": {
+        "hp": 88,
+        "attack": 92,
+        "defense": 100,
+        "specialAttack": 50,
+        "specialDefense": 78,
+        "speed": 54
+      },
+      "abilities": [
+        "Sand Force",
+        "Sand Veil"
+      ],
+      "moves": [
+        "Earthquake",
+        "Mud Slap",
+        "Rock Throw",
+        "Tackle"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_040.png",
+        "frontShiny": "/monsters/monster_040.png",
+        "officialArtwork": "/monsters/monster_040.png"
+      },
+      "genus": "Dune Crawler Monster",
+      "description": "Submerges beneath desert dunes, erupting beneath unsuspecting adversaries.",
+      "cardCode": "ML-0040"
+    },
+    {
+      "pokedexNumber": 41,
+      "name": "lumber",
+      "displayName": "Lumber",
+      "speciesId": "species_lumber",
+      "types": [
+        "Grass"
+      ],
+      "primaryType": "Grass",
+      "height": 17,
+      "weight": 204,
+      "baseStats": {
+        "hp": 100,
+        "attack": 105,
+        "defense": 102,
+        "specialAttack": 65,
+        "specialDefense": 88,
+        "speed": 48
+      },
+      "abilities": [
+        "Thick Fat",
+        "Natural Cure"
+      ],
+      "moves": [
+        "Vine Whip",
+        "Spore Blast",
+        "Wood Hammer",
+        "Earthquake"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_041.png",
+        "frontShiny": "/monsters/monster_041.png",
+        "officialArtwork": "/monsters/monster_041.png"
+      },
+      "genus": "Timber Guardian Monster",
+      "description": "Mighty colossus carved of ancient ironwood, warding off encroaching storms.",
+      "cardCode": "ML-0041"
+    },
+    {
+      "pokedexNumber": 42,
+      "name": "jett",
+      "displayName": "Jett",
+      "speciesId": "species_jett",
+      "types": [
+        "Dragon"
+      ],
+      "primaryType": "Dragon",
+      "height": 18,
+      "weight": 208,
+      "baseStats": {
+        "hp": 90,
+        "attack": 110,
+        "defense": 82,
+        "specialAttack": 105,
+        "specialDefense": 85,
+        "speed": 108
+      },
+      "abilities": [
+        "Dragon Maw",
+        "Intimidate"
+      ],
+      "moves": [
+        "Dragon Claw",
+        "Dragon Breath",
+        "Air Slash",
+        "Flame Burst"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_042.png",
+        "frontShiny": "/monsters/monster_042.png",
+        "officialArtwork": "/monsters/monster_042.png"
+      },
+      "genus": "Skyborne Wyvern Monster",
+      "description": "Apex skyborne wyvern cutting supersonic trails with crimson wing vanes.",
+      "cardCode": "ML-0042"
+    },
+    {
+      "pokedexNumber": 43,
+      "name": "void",
+      "displayName": "Void",
+      "speciesId": "species_void",
+      "types": [
+        "Ghost"
+      ],
+      "primaryType": "Ghost",
+      "height": 18,
+      "weight": 212,
+      "baseStats": {
+        "hp": 72,
+        "attack": 70,
+        "defense": 72,
+        "specialAttack": 115,
+        "specialDefense": 98,
+        "speed": 102
+      },
+      "abilities": [
+        "Levitate",
+        "Infiltrator"
+      ],
+      "moves": [
+        "Shadow Sneak",
+        "Night Shade",
+        "Dark Pulse",
+        "Hex"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_043.png",
+        "frontShiny": "/monsters/monster_043.png",
+        "officialArtwork": "/monsters/monster_043.png"
+      },
+      "genus": "Nebula Specter Monster",
+      "description": "Born from interdimensional voids, bending spacetime and spectral light.",
+      "cardCode": "ML-0043"
+    },
+    {
+      "pokedexNumber": 44,
+      "name": "chill",
+      "displayName": "Chill",
+      "speciesId": "species_chill",
+      "types": [
+        "Ice"
+      ],
+      "primaryType": "Ice",
+      "height": 18,
+      "weight": 216,
+      "baseStats": {
+        "hp": 92,
+        "attack": 76,
+        "defense": 88,
+        "specialAttack": 98,
+        "specialDefense": 92,
+        "speed": 65
+      },
+      "abilities": [
+        "Slush Rush",
+        "Ice Body"
+      ],
+      "moves": [
+        "Ice Shard",
+        "Frost Breath",
+        "Blizzard",
+        "Bubble Beam"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_044.png",
+        "frontShiny": "/monsters/monster_044.png",
+        "officialArtwork": "/monsters/monster_044.png"
+      },
+      "genus": "Glacier Penguin Monster",
+      "description": "Glides across sea ice with joyful momentum, unfazed by sub-zero blizzards.",
+      "cardCode": "ML-0044"
+    },
+    {
+      "pokedexNumber": 45,
+      "name": "fang",
+      "displayName": "Fang",
+      "speciesId": "species_fang",
+      "types": [
+        "Dark"
+      ],
+      "primaryType": "Dark",
+      "height": 19,
+      "weight": 220,
+      "baseStats": {
+        "hp": 78,
+        "attack": 106,
+        "defense": 74,
+        "specialAttack": 70,
+        "specialDefense": 70,
+        "speed": 100
+      },
+      "abilities": [
+        "Moxie",
+        "Strong Jaw"
+      ],
+      "moves": [
+        "Bite",
+        "Dark Pulse",
+        "Fire Fang",
+        "Quick Strike"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_045.png",
+        "frontShiny": "/monsters/monster_045.png",
+        "officialArtwork": "/monsters/monster_045.png"
+      },
+      "genus": "Dusk Stalker Monster",
+      "description": "Fierce dusk predator boasting obsidian fangs that crush titanium armor.",
+      "cardCode": "ML-0045"
+    },
+    {
+      "pokedexNumber": 46,
+      "name": "solar",
+      "displayName": "Solar",
+      "speciesId": "species_solar",
+      "types": [
+        "Fire"
+      ],
+      "primaryType": "Fire",
+      "height": 19,
+      "weight": 224,
+      "baseStats": {
+        "hp": 88,
+        "attack": 96,
+        "defense": 82,
+        "specialAttack": 114,
+        "specialDefense": 90,
+        "speed": 92
+      },
+      "abilities": [
+        "Drought",
+        "Flash Fire"
+      ],
+      "moves": [
+        "Flame Burst",
+        "Fire Fang",
+        "Flamethrower",
+        "Solar Beam"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_046.png",
+        "frontShiny": "/monsters/monster_046.png",
+        "officialArtwork": "/monsters/monster_046.png"
+      },
+      "genus": "Sun Sovereign Monster",
+      "description": "Radiates solar flare energy crowned in blazing coronal coronal rays.",
+      "cardCode": "ML-0046"
+    },
+    {
+      "pokedexNumber": 47,
+      "name": "aero",
+      "displayName": "Aero",
+      "speciesId": "species_aero",
+      "types": [
+        "Flying"
+      ],
+      "primaryType": "Flying",
+      "height": 19,
+      "weight": 228,
+      "baseStats": {
+        "hp": 75,
+        "attack": 80,
+        "defense": 70,
+        "specialAttack": 95,
+        "specialDefense": 78,
+        "speed": 112
+      },
+      "abilities": [
+        "Aerilate",
+        "Gale Wings"
+      ],
+      "moves": [
+        "Gust",
+        "Air Slash",
+        "Quick Strike",
+        "Roost"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_047.png",
+        "frontShiny": "/monsters/monster_047.png",
+        "officialArtwork": "/monsters/monster_047.png"
+      },
+      "genus": "Zephyr Swallow Monster",
+      "description": "Rides troposphere jetstreams, circling the globe with buoyant grace.",
+      "cardCode": "ML-0047"
+    },
+    {
+      "pokedexNumber": 48,
+      "name": "crysta",
+      "displayName": "Crysta",
+      "speciesId": "species_crysta",
+      "types": [
+        "Rock"
+      ],
+      "primaryType": "Rock",
+      "height": 19,
+      "weight": 232,
+      "baseStats": {
+        "hp": 95,
+        "attack": 102,
+        "defense": 120,
+        "specialAttack": 68,
+        "specialDefense": 90,
+        "speed": 45
+      },
+      "abilities": [
+        "Clear Body",
+        "Solid Rock"
+      ],
+      "moves": [
+        "Rock Throw",
+        "Stone Edge",
+        "Earthquake",
+        "Flash Cannon"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_048.png",
+        "frontShiny": "/monsters/monster_048.png",
+        "officialArtwork": "/monsters/monster_048.png"
+      },
+      "genus": "Gemstone Behemoth Monster",
+      "description": "Encased in brilliant amethyst geodes that refract radiant crystal barriers.",
+      "cardCode": "ML-0048"
+    },
+    {
+      "pokedexNumber": 49,
+      "name": "venom",
+      "displayName": "Venom",
+      "speciesId": "species_venom",
+      "types": [
+        "Poison"
+      ],
+      "primaryType": "Poison",
+      "height": 20,
+      "weight": 236,
+      "baseStats": {
+        "hp": 98,
+        "attack": 108,
+        "defense": 94,
+        "specialAttack": 72,
+        "specialDefense": 82,
+        "speed": 56
+      },
+      "abilities": [
+        "Poison Touch",
+        "Liquid Ooze"
+      ],
+      "moves": [
+        "Poison Sting",
+        "Sludge Wave",
+        "Earthquake",
+        "Tackle"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_049.png",
+        "frontShiny": "/monsters/monster_049.png",
+        "officialArtwork": "/monsters/monster_049.png"
+      },
+      "genus": "Toxic Ogre Monster",
+      "description": "Towering purple titan secreting caustic toxins from its heavy gauntlets.",
+      "cardCode": "ML-0049"
+    },
+    {
+      "pokedexNumber": 50,
+      "name": "orbit",
+      "displayName": "Orbit",
+      "speciesId": "species_orbit",
+      "types": [
+        "Steel"
+      ],
+      "primaryType": "Steel",
+      "height": 20,
+      "weight": 240,
+      "baseStats": {
+        "hp": 85,
+        "attack": 80,
+        "defense": 110,
+        "specialAttack": 110,
+        "specialDefense": 105,
+        "speed": 80
+      },
+      "abilities": [
+        "Levitate",
+        "Magnet Pull"
+      ],
+      "moves": [
+        "Flash Cannon",
+        "Magnet Bomb",
+        "Spark Claw",
+        "Cosmic Power"
+      ],
+      "sprites": {
+        "frontDefault": "/monsters/monster_050.png",
+        "frontShiny": "/monsters/monster_050.png",
+        "officialArtwork": "/monsters/monster_050.png"
+      },
+      "genus": "Cosmic Core Monster",
+      "description": "A celestial gyroscope orbiting a single observant core of cosmic matter.",
+      "cardCode": "ML-0050"
+    }
+  ]
+}

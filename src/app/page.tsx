@@ -65,9 +65,9 @@ export default function HomePage() {
   // NFC Writer State
   const [writeSearchQuery, setWriteSearchQuery] = useState<string>('');
   const [selectedPokemonForWrite, setSelectedPokemonForWrite] = useState<PokemonSpeciesRecord>(() => {
-    return getPokemonByPokedexNumber(25) || POKEMON_DATABASE[0];
+    return getPokemonByPokedexNumber(1) || POKEMON_DATABASE[0];
   });
-  const [customWriteCode, setCustomWriteCode] = useState<string>('ML-0025');
+  const [customWriteCode, setCustomWriteCode] = useState<string>('ML-0001');
   const [allowOverwrite, setAllowOverwrite] = useState<boolean>(true);
   const [writeFeedback, setWriteFeedback] = useState<{
     type: 'success' | 'error';
@@ -194,7 +194,7 @@ export default function HomePage() {
     await HybridStorage.registerCard('ML-CARD-AQUA-02', c2.instanceId, c2.speciesId);
     await refreshData();
     Sound.playScanSuccess();
-    showToast('Demo creatures (Ignisaur & Aquabite) added!', 'success');
+    showToast('Demo creatures (Flamby & Aquat) added!', 'success');
   }
 
   // Select Pokémon for writing
@@ -782,9 +782,9 @@ export default function HomePage() {
                   <span className="btn-sub">Read & Write NTAG215 Tags</span>
                 </button>
                 <button className="pixel-btn" style={{ borderColor: '#38bdf8' }} onClick={() => navigateTo('view-monsterlist')}>
-                  <span className="btn-icon">📖</span>
-                  <span className="btn-label">MONSTER LIST (ALL POKÉMON)</span>
-                  <span className="btn-sub">152 Database Grid & Quick Write</span>
+                  <span className="btn-icon">👾</span>
+                  <span className="btn-label">MONSTER LIST (50 CREATURES)</span>
+                  <span className="btn-sub">Original Monsters &amp; NFC Writer</span>
                   <span className="btn-badge">{POKEMON_DATABASE.length}</span>
                 </button>
                 <button className="pixel-btn" onClick={() => navigateTo('view-collection')}>
@@ -1673,7 +1673,10 @@ export default function HomePage() {
                     <span style={{ color: '#64748b' }}>/</span>
                     <span style={{ color: '#94a3b8' }}>PROTOTYPE 0.5</span>
                   </div>
-                  <div className="ml-topbar-right">
+                  <div className="ml-topbar-right" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ color: '#38bdf8', fontSize: '6.5px', letterSpacing: '1px', fontWeight: 'bold' }}>
+                      COLLECT . TRAIN . EVOLVE ▰▰
+                    </span>
                     <button className="back-btn" onClick={() => navigateTo('view-menu')} style={{ padding: '2px 8px' }}>
                       ◀ MENU
                     </button>
@@ -1685,12 +1688,12 @@ export default function HomePage() {
                   <input
                     type="text"
                     className="monster-search-input"
-                    placeholder="Search 152 Pokémon by name, #dex, or type..."
+                    placeholder="Search 50 monsters by name, #dex, or type..."
                     value={monsterListSearch}
                     onChange={(e) => setMonsterListSearch(e.target.value)}
                   />
                   <div className="monster-type-filter-row">
-                    {['ALL', 'FIRE', 'WATER', 'GRASS', 'ELECTRIC', 'POISON', 'GHOST', 'ROCK', 'ICE', 'FLYING', 'FAIRY', 'STEEL', 'GROUND', 'DARK', 'DRAGON', 'PSYCHIC', 'NORMAL'].map(t => (
+                    {['ALL', 'FIRE', 'WATER', 'GRASS', 'ELECTRIC', 'GHOST', 'ROCK', 'ICE', 'FLYING', 'FAIRY', 'STEEL', 'GROUND', 'DARK', 'DRAGON', 'POISON', 'NORMAL'].map(t => (
                       <button
                         key={t}
                         className={`monster-filter-pill ${monsterListTypeFilter === t ? 'active' : ''}`}
@@ -1745,7 +1748,7 @@ export default function HomePage() {
 
                 {/* Footer Bar matching attached image */}
                 <div className="monster-list-bottombar">
-                  <span>MONSTER LINK // {POKEMON_DATABASE.length} CREATURES</span>
+                  <span>MONSTER LINK // 050 CREATURES</span>
                   <span>VERSION 0.5 // TAP CARD TO WRITE NFC</span>
                 </div>
               </div>

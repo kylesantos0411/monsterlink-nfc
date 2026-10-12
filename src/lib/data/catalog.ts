@@ -1,7 +1,10 @@
 import { ElementType, MoveDefinition, CreatureSpecies, CreatureInstance } from '@/types/creature';
 import { CardRegistryEntry } from '@/types/nfc';
+import monsterDatabaseJson from './monster-database.json';
+import { PokemonSpeciesRecord, PokemonDatabaseManifest } from '@/types/pokemon';
 
 export const MOVES_CATALOG: Record<string, MoveDefinition> = {
+  // Fire
   flame_burst: {
     id: 'flame_burst',
     name: 'Flame Burst',
@@ -18,6 +21,16 @@ export const MOVES_CATALOG: Record<string, MoveDefinition> = {
     accuracy: 95,
     description: 'Bites with burning fangs imbued with fire.',
   },
+  flamethrower: {
+    id: 'flamethrower',
+    name: 'Flamethrower',
+    type: 'Fire',
+    power: 85,
+    accuracy: 100,
+    description: 'Scorches the foe with an intense blast of fire.',
+  },
+
+  // Water
   aqua_jet: {
     id: 'aqua_jet',
     name: 'Aqua Jet',
@@ -34,6 +47,16 @@ export const MOVES_CATALOG: Record<string, MoveDefinition> = {
     accuracy: 100,
     description: 'Sprays pressurized bubbles that blast the foe.',
   },
+  hydro_pump: {
+    id: 'hydro_pump',
+    name: 'Hydro Pump',
+    type: 'Water',
+    power: 85,
+    accuracy: 90,
+    description: 'Blasts a high-volume column of water at tremendous force.',
+  },
+
+  // Grass
   vine_whip: {
     id: 'vine_whip',
     name: 'Vine Whip',
@@ -50,6 +73,16 @@ export const MOVES_CATALOG: Record<string, MoveDefinition> = {
     accuracy: 95,
     description: 'Explodes a pouch of prickly pollen spores.',
   },
+  wood_hammer: {
+    id: 'wood_hammer',
+    name: 'Wood Hammer',
+    type: 'Grass',
+    power: 80,
+    accuracy: 100,
+    description: 'Slams the target with a heavy, enchanted log.',
+  },
+
+  // Electric
   spark_claw: {
     id: 'spark_claw',
     name: 'Spark Claw',
@@ -62,10 +95,208 @@ export const MOVES_CATALOG: Record<string, MoveDefinition> = {
     id: 'thunder_jolt',
     name: 'Thunder Jolt',
     type: 'Electric',
-    power: 60,
+    power: 65,
     accuracy: 95,
     description: 'Unleashes a concentrated blast of lightning.',
   },
+  wild_charge: {
+    id: 'wild_charge',
+    name: 'Wild Charge',
+    type: 'Electric',
+    power: 80,
+    accuracy: 100,
+    description: 'Shrouds itself in electricity and charges into the foe.',
+  },
+
+  // Ghost
+  shadow_sneak: {
+    id: 'shadow_sneak',
+    name: 'Shadow Sneak',
+    type: 'Ghost',
+    power: 40,
+    accuracy: 100,
+    description: 'Extends its shadow to strike from behind.',
+  },
+  night_shade: {
+    id: 'night_shade',
+    name: 'Night Shade',
+    type: 'Ghost',
+    power: 60,
+    accuracy: 100,
+    description: 'Creates an illusion of mirage shadows.',
+  },
+
+  // Rock
+  rock_throw: {
+    id: 'rock_throw',
+    name: 'Rock Throw',
+    type: 'Rock',
+    power: 50,
+    accuracy: 90,
+    description: 'Hurls small boulders at the target.',
+  },
+  stone_edge: {
+    id: 'stone_edge',
+    name: 'Stone Edge',
+    type: 'Rock',
+    power: 80,
+    accuracy: 90,
+    description: 'Stabs the target from below with sharp stones.',
+  },
+
+  // Ice
+  ice_shard: {
+    id: 'ice_shard',
+    name: 'Ice Shard',
+    type: 'Ice',
+    power: 40,
+    accuracy: 100,
+    description: 'Hurls flash-frozen shards of ice at high speed.',
+  },
+  frost_breath: {
+    id: 'frost_breath',
+    name: 'Frost Breath',
+    type: 'Ice',
+    power: 60,
+    accuracy: 100,
+    description: 'Blows freezing breath that chills the opponent.',
+  },
+  blizzard: {
+    id: 'blizzard',
+    name: 'Blizzard',
+    type: 'Ice',
+    power: 85,
+    accuracy: 85,
+    description: 'Summons a raging blizzard of howling snow.',
+  },
+
+  // Flying
+  gust: {
+    id: 'gust',
+    name: 'Gust',
+    type: 'Flying',
+    power: 40,
+    accuracy: 100,
+    description: 'Flaps wings to whip up a whirlwind.',
+  },
+  air_slash: {
+    id: 'air_slash',
+    name: 'Air Slash',
+    type: 'Flying',
+    power: 70,
+    accuracy: 95,
+    description: 'Attacks with a blade of air that slices the sky.',
+  },
+
+  // Fairy
+  fairy_wind: {
+    id: 'fairy_wind',
+    name: 'Fairy Wind',
+    type: 'Fairy',
+    power: 45,
+    accuracy: 100,
+    description: 'Stirs up a mystical wind full of fairy dust.',
+  },
+  dazzling_gleam: {
+    id: 'dazzling_gleam',
+    name: 'Dazzling Gleam',
+    type: 'Fairy',
+    power: 75,
+    accuracy: 100,
+    description: 'Emits a powerful flash of dazzling starlight.',
+  },
+
+  // Steel
+  flash_cannon: {
+    id: 'flash_cannon',
+    name: 'Flash Cannon',
+    type: 'Steel',
+    power: 75,
+    accuracy: 100,
+    description: 'Gathers light energy and releases a steel beam.',
+  },
+  iron_head: {
+    id: 'iron_head',
+    name: 'Iron Head',
+    type: 'Steel',
+    power: 75,
+    accuracy: 100,
+    description: 'Slams the foe with a steel-hardened headbutt.',
+  },
+
+  // Ground
+  mud_slap: {
+    id: 'mud_slap',
+    name: 'Mud Slap',
+    type: 'Ground',
+    power: 35,
+    accuracy: 100,
+    description: 'Hurls mud into the foe’s eyes to obscure vision.',
+  },
+  earthquake: {
+    id: 'earthquake',
+    name: 'Earthquake',
+    type: 'Ground',
+    power: 85,
+    accuracy: 100,
+    description: 'Sets off an intense tremor that shakes the ground.',
+  },
+
+  // Dark
+  bite: {
+    id: 'bite',
+    name: 'Bite',
+    type: 'Dark',
+    power: 60,
+    accuracy: 100,
+    description: 'Bites with vicious, shadow-infused jaws.',
+  },
+  dark_pulse: {
+    id: 'dark_pulse',
+    name: 'Dark Pulse',
+    type: 'Dark',
+    power: 75,
+    accuracy: 100,
+    description: 'Releases a horrible aura imbued with dark thoughts.',
+  },
+
+  // Dragon
+  dragon_breath: {
+    id: 'dragon_breath',
+    name: 'Dragon Breath',
+    type: 'Dragon',
+    power: 60,
+    accuracy: 100,
+    description: 'Exhales an ionized dragon breath of raw power.',
+  },
+  dragon_claw: {
+    id: 'dragon_claw',
+    name: 'Dragon Claw',
+    type: 'Dragon',
+    power: 80,
+    accuracy: 100,
+    description: 'Slashes with sharp, ancient draconic talons.',
+  },
+
+  // Poison
+  poison_sting: {
+    id: 'poison_sting',
+    name: 'Poison Sting',
+    type: 'Poison',
+    power: 40,
+    accuracy: 100,
+    description: 'Shoots a toxic barb that stings the foe.',
+  },
+  sludge_wave: {
+    id: 'sludge_wave',
+    name: 'Sludge Wave',
+    type: 'Poison',
+    power: 80,
+    accuracy: 100,
+    description: 'Swamps the battlefield in a wave of toxic sludge.',
+  },
+
+  // Normal
   tackle: {
     id: 'tackle',
     name: 'Tackle',
@@ -84,243 +315,94 @@ export const MOVES_CATALOG: Record<string, MoveDefinition> = {
   },
 };
 
-export const SPECIES_CATALOG: Record<string, CreatureSpecies> = {
-  species_ignisaur: {
-    id: 'species_ignisaur',
-    name: 'Ignisaur',
-    subtitle: 'Ember Reptile',
-    type: 'Fire',
-    rarity: 'Common',
-    baseStats: { hp: 48, attack: 52, defense: 43, speed: 55 },
-    learnableMoveIds: ['flame_burst', 'tackle', 'fire_fang'],
-    spriteKey: 'ignisaur',
-  },
-  species_aquabite: {
-    id: 'species_aquabite',
-    name: 'Aquabite',
-    subtitle: 'Coral Crab',
-    type: 'Water',
-    rarity: 'Common',
-    baseStats: { hp: 55, attack: 46, defense: 60, speed: 38 },
-    learnableMoveIds: ['aqua_jet', 'tackle', 'bubble_beam'],
-    spriteKey: 'aquabite',
-  },
-  species_floraslug: {
-    id: 'species_floraslug',
-    name: 'Floraslug',
-    subtitle: 'Spore Slug',
-    type: 'Grass',
-    rarity: 'Common',
-    baseStats: { hp: 60, attack: 44, defense: 52, speed: 30 },
-    learnableMoveIds: ['vine_whip', 'tackle', 'spore_blast'],
-    spriteKey: 'floraslug',
-  },
-  species_voltkit: {
-    id: 'species_voltkit',
-    name: 'Voltkit',
-    subtitle: 'Spark Rodent',
-    type: 'Electric',
-    rarity: 'Uncommon',
-    baseStats: { hp: 42, attack: 56, defense: 38, speed: 68 },
-    learnableMoveIds: ['spark_claw', 'quick_strike', 'thunder_jolt'],
-    spriteKey: 'voltkit',
-  },
-  // Official Pokémon Species (linked to PokéAPI reference IDs)
-  species_pikachu: {
-    id: 'species_pikachu',
-    name: 'Pikachu',
-    subtitle: 'Mouse Pokémon',
-    type: 'Electric',
-    rarity: 'Rare',
-    baseStats: { hp: 45, attack: 55, defense: 40, speed: 90 },
-    learnableMoveIds: ['spark_claw', 'quick_strike', 'thunder_jolt'],
-    spriteKey: 'pikachu',
-  },
-  species_charizard: {
-    id: 'species_charizard',
-    name: 'Charizard',
-    subtitle: 'Flame Pokémon',
-    type: 'Fire',
-    rarity: 'Legendary',
-    baseStats: { hp: 78, attack: 84, defense: 78, speed: 100 },
-    learnableMoveIds: ['flame_burst', 'fire_fang', 'tackle'],
-    spriteKey: 'charizard',
-  },
-  species_blastoise: {
-    id: 'species_blastoise',
-    name: 'Blastoise',
-    subtitle: 'Shellfish Pokémon',
-    type: 'Water',
-    rarity: 'Legendary',
-    baseStats: { hp: 79, attack: 83, defense: 100, speed: 78 },
-    learnableMoveIds: ['aqua_jet', 'bubble_beam', 'tackle'],
-    spriteKey: 'blastoise',
-  },
-  species_venusaur: {
-    id: 'species_venusaur',
-    name: 'Venusaur',
-    subtitle: 'Seed Pokémon',
-    type: 'Grass',
-    rarity: 'Legendary',
-    baseStats: { hp: 80, attack: 82, defense: 83, speed: 80 },
-    learnableMoveIds: ['vine_whip', 'spore_blast', 'tackle'],
-    spriteKey: 'venusaur',
-  },
-  species_lucario: {
-    id: 'species_lucario',
-    name: 'Lucario',
-    subtitle: 'Aura Pokémon',
-    type: 'Normal',
-    rarity: 'Rare',
-    baseStats: { hp: 70, attack: 110, defense: 70, speed: 90 },
-    learnableMoveIds: ['quick_strike', 'spark_claw', 'tackle'],
-    spriteKey: 'lucario',
-  },
-  species_gengar: {
-    id: 'species_gengar',
-    name: 'Gengar',
-    subtitle: 'Shadow Pokémon',
-    type: 'Normal',
-    rarity: 'Rare',
-    baseStats: { hp: 60, attack: 65, defense: 60, speed: 110 },
-    learnableMoveIds: ['thunder_jolt', 'spore_blast', 'tackle'],
-    spriteKey: 'gengar',
-  },
-};
+export const SPECIES_CATALOG: Record<string, CreatureSpecies> = {};
+export const CARD_REGISTRY: Record<string, CardRegistryEntry> = {};
 
-export const CARD_REGISTRY: Record<string, CardRegistryEntry> = {
-  // Prototype Original Tags (Supports both aliases)
-  'ML-CARD-IGNI-01': {
-    cardCode: 'ML-CARD-IGNI-01',
-    speciesId: 'species_ignisaur',
-    name: 'Ignisaur Tag',
-    rarity: 'Common',
-    source: 'Physical NFC Tag Pack 1',
-    grade: '2-Star',
-  },
-  'ML-CARD-FIRE-001': {
-    cardCode: 'ML-CARD-FIRE-001',
-    speciesId: 'species_ignisaur',
-    name: 'Ignisaur Tag',
-    rarity: 'Common',
-    source: 'Physical NFC Tag Pack 1',
-    grade: '2-Star',
-  },
-  'ML-CARD-AQUA-02': {
-    cardCode: 'ML-CARD-AQUA-02',
-    speciesId: 'species_aquabite',
-    name: 'Aquabite Tag',
-    rarity: 'Common',
-    source: 'Physical NFC Tag Pack 1',
-    grade: '2-Star',
-  },
-  'ML-CARD-WATER-002': {
-    cardCode: 'ML-CARD-WATER-002',
-    speciesId: 'species_aquabite',
-    name: 'Aquabite Tag',
-    rarity: 'Common',
-    source: 'Physical NFC Tag Pack 1',
-    grade: '2-Star',
-  },
-  'ML-CARD-FLOR-03': {
-    cardCode: 'ML-CARD-FLOR-03',
-    speciesId: 'species_floraslug',
-    name: 'Floraslug Tag',
-    rarity: 'Common',
-    source: 'Physical NFC Tag Pack 1',
-    grade: '2-Star',
-  },
-  'ML-CARD-GRASS-003': {
-    cardCode: 'ML-CARD-GRASS-003',
-    speciesId: 'species_floraslug',
-    name: 'Floraslug Tag',
-    rarity: 'Common',
-    source: 'Physical NFC Tag Pack 1',
-    grade: '2-Star',
-  },
-  'ML-CARD-VOLT-04': {
-    cardCode: 'ML-CARD-VOLT-04',
-    speciesId: 'species_voltkit',
-    name: 'Voltkit Tag',
-    rarity: 'Uncommon',
-    source: 'Physical NFC Tag Pack 1',
-    grade: '3-Star',
-  },
-  'ML-CARD-ELEC-004': {
-    cardCode: 'ML-CARD-ELEC-004',
-    speciesId: 'species_voltkit',
-    name: 'Voltkit Tag',
-    rarity: 'Uncommon',
-    source: 'Physical NFC Tag Pack 1',
-    grade: '3-Star',
-  },
+// Helper to pick moves matching element type
+function getDefaultMovesForType(type: ElementType): string[] {
+  switch (type) {
+    case 'Fire': return ['flame_burst', 'fire_fang', 'tackle'];
+    case 'Water': return ['aqua_jet', 'bubble_beam', 'tackle'];
+    case 'Grass': return ['vine_whip', 'spore_blast', 'tackle'];
+    case 'Electric': return ['spark_claw', 'thunder_jolt', 'tackle'];
+    case 'Ghost': return ['shadow_sneak', 'night_shade', 'tackle'];
+    case 'Rock': return ['rock_throw', 'stone_edge', 'tackle'];
+    case 'Ice': return ['ice_shard', 'frost_breath', 'tackle'];
+    case 'Flying': return ['gust', 'air_slash', 'tackle'];
+    case 'Fairy': return ['fairy_wind', 'dazzling_gleam', 'tackle'];
+    case 'Steel': return ['flash_cannon', 'iron_head', 'tackle'];
+    case 'Ground': return ['mud_slap', 'earthquake', 'tackle'];
+    case 'Dark': return ['bite', 'dark_pulse', 'tackle'];
+    case 'Dragon': return ['dragon_claw', 'dragon_breath', 'tackle'];
+    case 'Poison': return ['poison_sting', 'sludge_wave', 'tackle'];
+    default: return ['quick_strike', 'tackle'];
+  }
+}
 
-  // Official Pokémon MEZASTAR NFC Tags (Canonical & Test codes)
-  'ML-MEZASTAR-001': {
-    cardCode: 'ML-MEZASTAR-001',
-    speciesId: 'species_pikachu',
-    name: 'Pikachu (5★ Z-Move)',
-    rarity: 'Rare',
-    source: 'Pokémon MEZASTAR Set 1',
-    grade: '5-Star',
-  },
-  'MEZASTAR-01-001': {
-    cardCode: 'MEZASTAR-01-001',
-    speciesId: 'species_charizard',
-    name: 'Charizard (6★ Superstar)',
-    rarity: 'Legendary',
-    source: 'Pokémon MEZASTAR Superstar Set 1',
-    grade: '6-Star Superstar',
-  },
-  'ML-MEZASTAR-002': {
-    cardCode: 'ML-MEZASTAR-002',
-    speciesId: 'species_charizard',
-    name: 'Charizard (6★ Superstar)',
-    rarity: 'Legendary',
-    source: 'Pokémon MEZASTAR Superstar Set 1',
-    grade: '6-Star Superstar',
-  },
-  'MEZASTAR-01-003': {
-    cardCode: 'MEZASTAR-01-003',
-    speciesId: 'species_blastoise',
-    name: 'Blastoise (6★ Superstar)',
-    rarity: 'Legendary',
-    source: 'Pokémon MEZASTAR Superstar Set 1',
-    grade: '6-Star Superstar',
-  },
-  'ML-MEZASTAR-003': {
-    cardCode: 'ML-MEZASTAR-003',
-    speciesId: 'species_blastoise',
-    name: 'Blastoise (6★ Superstar)',
-    rarity: 'Legendary',
-    source: 'Pokémon MEZASTAR Superstar Set 1',
-    grade: '6-Star Superstar',
-  },
-  'ML-MEZASTAR-004': {
-    cardCode: 'ML-MEZASTAR-004',
-    speciesId: 'species_venusaur',
-    name: 'Venusaur (6★ Superstar)',
-    rarity: 'Legendary',
-    source: 'Pokémon MEZASTAR Superstar Set 1',
-    grade: '6-Star Superstar',
-  },
-  'ML-MEZASTAR-005': {
-    cardCode: 'ML-MEZASTAR-005',
-    speciesId: 'species_lucario',
-    name: 'Lucario (5★ Mega Evolution)',
-    rarity: 'Rare',
-    source: 'Pokémon MEZASTAR Set 2',
-    grade: '5-Star',
-  },
-  'ML-MEZASTAR-006': {
-    cardCode: 'ML-MEZASTAR-006',
-    speciesId: 'species_gengar',
-    name: 'Gengar (4★ Star)',
-    rarity: 'Rare',
-    source: 'Pokémon MEZASTAR Set 2',
-    grade: '4-Star',
-  },
-};
+// Pre-load all 50 original monsters from database
+const manifest = monsterDatabaseJson as unknown as PokemonDatabaseManifest;
+if (manifest && manifest.pokemon) {
+  for (const m of manifest.pokemon) {
+    const elType = (m.primaryType || 'Normal') as ElementType;
+    const isApex = m.pokedexNumber >= 41 || m.pokedexNumber % 10 === 0;
+    const rarity = isApex ? 'Legendary' : (m.pokedexNumber % 4 === 0 ? 'Rare' : 'Common');
+
+    const species: CreatureSpecies = {
+      id: m.speciesId,
+      name: m.displayName,
+      subtitle: m.genus || `${m.displayName} Monster`,
+      type: elType,
+      rarity,
+      baseStats: {
+        hp: m.baseStats.hp,
+        attack: m.baseStats.attack,
+        defense: m.baseStats.defense,
+        speed: m.baseStats.speed,
+      },
+      learnableMoveIds: getDefaultMovesForType(elType),
+      spriteKey: m.name,
+    };
+
+    SPECIES_CATALOG[m.speciesId] = species;
+
+    // Register canonical NTAG215 cards (ML-0001 to ML-0050)
+    const canonicalCardCode = `ML-${String(m.pokedexNumber).padStart(4, '0')}`;
+    const cardEntry: CardRegistryEntry = {
+      cardCode: canonicalCardCode,
+      speciesId: m.speciesId,
+      name: `${m.displayName} Tag`,
+      rarity,
+      source: 'Physical NTAG215 Monster Tag',
+      grade: isApex ? '6-Star Superstar' : '5-Star',
+    };
+
+    CARD_REGISTRY[canonicalCardCode] = cardEntry;
+    CARD_REGISTRY[`ML-${m.pokedexNumber}`] = cardEntry;
+    CARD_REGISTRY[`ML-MONSTER-${String(m.pokedexNumber).padStart(3, '0')}`] = cardEntry;
+  }
+}
+
+// Starter / Legacy Aliases so previous save states and tests don't fail
+if (SPECIES_CATALOG['species_flamby']) {
+  SPECIES_CATALOG['species_ignisaur'] = { ...SPECIES_CATALOG['species_flamby'], id: 'species_ignisaur', name: 'Ignisaur' };
+  CARD_REGISTRY['ML-CARD-IGNI-01'] = { cardCode: 'ML-CARD-IGNI-01', speciesId: 'species_ignisaur', name: 'Ignisaur Tag', rarity: 'Common', source: 'Legacy Pack', grade: '2-Star' };
+  CARD_REGISTRY['ML-CARD-FIRE-001'] = CARD_REGISTRY['ML-CARD-IGNI-01'];
+}
+if (SPECIES_CATALOG['species_aquat']) {
+  SPECIES_CATALOG['species_aquabite'] = { ...SPECIES_CATALOG['species_aquat'], id: 'species_aquabite', name: 'Aquabite' };
+  CARD_REGISTRY['ML-CARD-AQUA-02'] = { cardCode: 'ML-CARD-AQUA-02', speciesId: 'species_aquabite', name: 'Aquabite Tag', rarity: 'Common', source: 'Legacy Pack', grade: '2-Star' };
+  CARD_REGISTRY['ML-CARD-WATER-002'] = CARD_REGISTRY['ML-CARD-AQUA-02'];
+}
+if (SPECIES_CATALOG['species_leafy']) {
+  SPECIES_CATALOG['species_floraslug'] = { ...SPECIES_CATALOG['species_leafy'], id: 'species_floraslug', name: 'Floraslug' };
+  CARD_REGISTRY['ML-CARD-FLOR-03'] = { cardCode: 'ML-CARD-FLOR-03', speciesId: 'species_floraslug', name: 'Floraslug Tag', rarity: 'Common', source: 'Legacy Pack', grade: '2-Star' };
+  CARD_REGISTRY['ML-CARD-GRASS-003'] = CARD_REGISTRY['ML-CARD-FLOR-03'];
+}
+if (SPECIES_CATALOG['species_sparki']) {
+  SPECIES_CATALOG['species_voltkit'] = { ...SPECIES_CATALOG['species_sparki'], id: 'species_voltkit', name: 'Voltkit' };
+  CARD_REGISTRY['ML-CARD-VOLT-04'] = { cardCode: 'ML-CARD-VOLT-04', speciesId: 'species_voltkit', name: 'Voltkit Tag', rarity: 'Uncommon', source: 'Legacy Pack', grade: '3-Star' };
+  CARD_REGISTRY['ML-CARD-ELEC-004'] = CARD_REGISTRY['ML-CARD-VOLT-04'];
+}
 
 export function createCreatureInstance(
   speciesId: string,
@@ -358,44 +440,33 @@ export function createCreatureInstance(
 }
 
 import { getPokemonByPokedexNumber } from './pokemon-service';
-import { PokemonSpeciesRecord } from '@/types/pokemon';
 
 /**
- * Ensures any Pokémon species from the database has a corresponding combat species definition
+ * Ensures any monster species has a combat species definition
  */
 export function ensureSpeciesRegistered(pkmn: PokemonSpeciesRecord): CreatureSpecies {
-  const speciesId = `species_${pkmn.name}`;
+  const speciesId = `species_${pkmn.name.toLowerCase()}`;
   if (SPECIES_CATALOG[speciesId]) {
     return SPECIES_CATALOG[speciesId];
   }
 
-  let elType: ElementType = 'Normal';
-  const firstType = pkmn.types[0]?.toLowerCase();
-  if (firstType === 'fire') elType = 'Fire';
-  else if (firstType === 'water') elType = 'Water';
-  else if (firstType === 'grass') elType = 'Grass';
-  else if (firstType === 'electric') elType = 'Electric';
-
-  const moveIds = elType === 'Fire' ? ['flame_burst', 'fire_fang', 'tackle']
-    : elType === 'Water' ? ['aqua_jet', 'bubble_beam', 'tackle']
-    : elType === 'Grass' ? ['vine_whip', 'spore_blast', 'tackle']
-    : elType === 'Electric' ? ['spark_claw', 'thunder_jolt', 'tackle']
-    : ['quick_strike', 'tackle'];
+  const elType = (pkmn.primaryType || 'Normal') as ElementType;
+  const isApex = pkmn.pokedexNumber >= 41;
 
   const species: CreatureSpecies = {
     id: speciesId,
     name: pkmn.displayName,
-    subtitle: pkmn.genus || `${pkmn.displayName} Pokémon`,
+    subtitle: pkmn.genus || `${pkmn.displayName} Monster`,
     type: elType,
-    rarity: pkmn.pokedexNumber > 149 ? 'Legendary' : (pkmn.pokedexNumber % 5 === 0 ? 'Rare' : 'Common'),
+    rarity: isApex ? 'Legendary' : (pkmn.pokedexNumber % 4 === 0 ? 'Rare' : 'Common'),
     baseStats: {
-      hp: Math.min(120, Math.max(30, Math.floor(pkmn.baseStats.hp * 0.7))),
-      attack: Math.min(130, Math.max(30, Math.floor(pkmn.baseStats.attack * 0.7))),
-      defense: Math.min(130, Math.max(30, Math.floor(pkmn.baseStats.defense * 0.7))),
-      speed: Math.min(130, Math.max(30, Math.floor(pkmn.baseStats.speed * 0.7))),
+      hp: pkmn.baseStats.hp,
+      attack: pkmn.baseStats.attack,
+      defense: pkmn.baseStats.defense,
+      speed: pkmn.baseStats.speed,
     },
-    learnableMoveIds: moveIds,
-    spriteKey: pkmn.name,
+    learnableMoveIds: getDefaultMovesForType(elType),
+    spriteKey: pkmn.name.toLowerCase(),
   };
 
   SPECIES_CATALOG[speciesId] = species;
@@ -403,10 +474,10 @@ export function ensureSpeciesRegistered(pkmn: PokemonSpeciesRecord): CreatureSpe
 }
 
 /**
- * Resolves any NFC card code against the static registry or dynamically against the National Dex database.
+ * Resolves any NFC card code against the static registry or dynamically against the Monster database.
  * Supports:
- * - Direct codes: ML-MEZASTAR-001, ML-CARD-IGNI-01, etc.
- * - National Dex codes: ML-0001 through ML-0151, ML-0448, ML-PKMN-0025, etc.
+ * - Direct codes: ML-0001 through ML-0050
+ * - Aliases: ML-1, ML-01, ML-001, ML-CARD-0001, ML-PKMN-0001, etc.
  */
 export function resolveCardRegistryEntry(cardCode: string): CardRegistryEntry | null {
   if (!cardCode) return null;
@@ -422,21 +493,21 @@ export function resolveCardRegistryEntry(cardCode: string): CardRegistryEntry | 
     if (key.toUpperCase() === clean) return val;
   }
 
-  // 3. National Dex Pattern: ML-0001 to ML-9999 or ML-PKMN-0001
-  const dexMatch = clean.match(/^ML-(?:PKMN-)?(\d{1,4})$/);
+  // 3. Numbered Monster Pattern: ML-0001 to ML-0050, ML-PKMN-0001, etc.
+  const dexMatch = clean.match(/^ML-(?:MONSTER-|PKMN-|CARD-)?(\d{1,4})$/);
   if (dexMatch) {
     const dexNum = parseInt(dexMatch[1], 10);
     const pkmn = getPokemonByPokedexNumber(dexNum);
     if (pkmn) {
       ensureSpeciesRegistered(pkmn);
-      const isLegendary = pkmn.pokedexNumber === 150 || pkmn.pokedexNumber === 151 || [144, 145, 146].includes(pkmn.pokedexNumber);
+      const isApex = pkmn.pokedexNumber >= 41;
       const entry: CardRegistryEntry = {
         cardCode: clean,
-        speciesId: `species_${pkmn.name}`,
+        speciesId: `species_${pkmn.name.toLowerCase()}`,
         name: `${pkmn.displayName} Tag`,
-        rarity: isLegendary ? 'Legendary' : (pkmn.pokedexNumber % 3 === 0 ? 'Rare' : 'Common'),
+        rarity: isApex ? 'Legendary' : (pkmn.pokedexNumber % 4 === 0 ? 'Rare' : 'Common'),
         source: 'Programmed NTAG215 Card',
-        grade: isLegendary ? '6-Star Superstar' : '5-Star',
+        grade: isApex ? '6-Star Superstar' : '5-Star',
       };
       CARD_REGISTRY[clean] = entry;
       return entry;
@@ -445,4 +516,3 @@ export function resolveCardRegistryEntry(cardCode: string): CardRegistryEntry | 
 
   return null;
 }
-

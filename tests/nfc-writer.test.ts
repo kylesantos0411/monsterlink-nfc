@@ -6,7 +6,7 @@ import {
   resolveCardToPokemonData,
 } from '../src/lib/nfc/ntag215-service';
 import { resolveCardRegistryEntry, CARD_REGISTRY } from '../src/lib/data/catalog';
-import { getPokemonByPokedexNumber } from '../src/lib/data/pokemon-service';
+import { getPokemonByPokedexNumber, POKEMON_DATABASE } from '../src/lib/data/pokemon-service';
 
 async function runNfcWriterTests() {
   console.log('====================================================');
@@ -15,11 +15,11 @@ async function runNfcWriterTests() {
 
   // Test 1: Identifier formatting
   console.log('Test 1: Card Identifier Generation & Formatting...');
-  assert.strictEqual(formatCardIdentifier(25), 'ML-0025', 'Format Pikachu Dex 25 to ML-0025');
-  assert.strictEqual(formatCardIdentifier(1), 'ML-0001', 'Format Bulbasaur Dex 1 to ML-0001');
-  assert.strictEqual(formatCardIdentifier(151), 'ML-0151', 'Format Mew Dex 151 to ML-0151');
-  assert.strictEqual(formatCardIdentifier(448), 'ML-0448', 'Format Lucario Dex 448 to ML-0448');
-  assert.strictEqual(formatCardIdentifier(25, 'ML-PKMN'), 'ML-PKMN-0025', 'Custom prefix formatting');
+  assert.strictEqual(formatCardIdentifier(1), 'ML-0001', 'Format Flamby Dex 1 to ML-0001');
+  assert.strictEqual(formatCardIdentifier(25), 'ML-0025', 'Format Bloomy Dex 25 to ML-0025');
+  assert.strictEqual(formatCardIdentifier(42), 'ML-0042', 'Format Jett Dex 42 to ML-0042');
+  assert.strictEqual(formatCardIdentifier(50), 'ML-0050', 'Format Orbit Dex 50 to ML-0050');
+  assert.strictEqual(formatCardIdentifier(1, 'ML-MONSTER'), 'ML-MONSTER-0001', 'Custom prefix formatting');
   console.log('✅ Identifier formatting tests passed.\n');
 
   // Test 2: NDEF Tag Parsing for NTAG215
@@ -31,25 +31,25 @@ async function runNfcWriterTests() {
     records: [
       {
         recordType: 'text',
-        data: textEncoder.encode('ML-0025'),
+        data: textEncoder.encode('ML-0001'),
         encoding: 'utf-8',
       },
     ],
   };
   const parsed1 = parseNdefTag(mockTextRecordMessage, '04:5A:22:9A:F1:67:80');
-  assert.strictEqual(parsed1.cardCode, 'ML-0025', 'Parses text record ML-0025 correctly');
+  assert.strictEqual(parsed1.cardCode, 'ML-0001', 'Parses text record ML-0001 correctly');
 
-  // URL fallback format (e.g. if programmed as URL)
+  // URL fallback format
   const mockUrlRecordMessage = {
     records: [
       {
         recordType: 'url',
-        data: textEncoder.encode('https://monsterlink.app/tag/ML-0150'),
+        data: textEncoder.encode('https://monsterlink.app/tag/ML-0050'),
       },
     ],
   };
   const parsed2 = parseNdefTag(mockUrlRecordMessage);
-  assert.strictEqual(parsed2.cardCode, 'ML-0150', 'Parses URL record tag identifier correctly');
+  assert.strictEqual(parsed2.cardCode, 'ML-0050', 'Parses URL record tag identifier correctly');
 
   // Empty NTAG215 tag (no records)
   const emptyTagMessage = { records: [] };
@@ -60,35 +60,37 @@ async function runNfcWriterTests() {
   assert.strictEqual(completelyBlank.cardCode, '', 'Blank tag with no UID returns empty string');
   console.log('✅ NDEF payload parsing tests passed.\n');
 
-  // Test 3: Dynamic Card Resolution Against Pokémon Database
-  console.log('Test 3: Card Identifier Resolution against National Dex...');
-  
-  // Bulbasaur (Dex #1)
+  // Test 3: Dynamic Card Resolution Against 50 Custom Monsters Database
+  console.log('Test 3: Card Identifier Resolution against Monster Database...');
+  assert.strictEqual(POKEMON_DATABASE.length, 50, 'Database contains all 50 custom creatures');
+
+  // Flamby (Dex #1)
   const entry001 = resolveCardRegistryEntry('ML-0001');
-  assert(entry001 !== null, 'ML-0001 must resolve to Bulbasaur');
-  assert.strictEqual(entry001?.speciesId, 'species_bulbasaur', 'Species ID matches bulbasaur');
+  assert(entry001 !== null, 'ML-0001 must resolve to Flamby');
+  assert.strictEqual(entry001?.speciesId, 'species_flamby', 'Species ID matches flamby');
 
-  // Pikachu (Dex #25)
+  // Bloomy (Dex #25)
   const entry025 = resolveCardRegistryEntry('ML-0025');
-  assert(entry025 !== null, 'ML-0025 must resolve to Pikachu');
-  assert.strictEqual(entry025?.speciesId, 'species_pikachu', 'Species ID matches pikachu');
+  assert(entry025 !== null, 'ML-0025 must resolve to Bloomy');
+  assert.strictEqual(entry025?.speciesId, 'species_bloomy', 'Species ID matches bloomy');
 
-  // Mew (Dex #151)
-  const entry151 = resolveCardRegistryEntry('ML-0151');
-  assert(entry151 !== null, 'ML-0151 must resolve to Mew');
-  assert.strictEqual(entry151?.rarity, 'Legendary', 'Mew receives Legendary rarity');
+  // Jett (Dex #42 - Dragon)
+  const entry042 = resolveCardRegistryEntry('ML-0042');
+  assert(entry042 !== null, 'ML-0042 must resolve to Jett');
+  assert.strictEqual(entry042?.speciesId, 'species_jett', 'Species ID matches jett');
+  assert.strictEqual(entry042?.rarity, 'Legendary', 'Apex monster Jett receives Legendary rarity');
 
-  // Preset MEZASTAR Tag
-  const mezastar001 = resolveCardRegistryEntry('ML-MEZASTAR-001');
-  assert(mezastar001 !== null, 'ML-MEZASTAR-001 resolves');
-  assert.strictEqual(mezastar001?.grade, '5-Star', 'MEZASTAR 5-Star grade matches');
+  // Orbit (Dex #50)
+  const entry050 = resolveCardRegistryEntry('ML-0050');
+  assert(entry050 !== null, 'ML-0050 must resolve to Orbit');
+  assert.strictEqual(entry050?.speciesId, 'species_orbit', 'Species ID matches orbit');
 
   // Invalid / Unknown Code
   const invalidCode = resolveCardRegistryEntry('ML-UNKNOWN-9999');
   assert.strictEqual(invalidCode, null, 'Unregistered / out-of-range codes return null');
   console.log('✅ Card identifier resolution tests passed.\n');
 
-  // Test 4: Visual & Combat Data Resolution (Artwork & Duplicate Protection)
+  // Test 4: Visual & Combat Data Resolution (Sprite Assets & Duplicate Protection)
   console.log('Test 4: Visual & Combat Data Resolution...');
   const registeredMockMap = {
     'ML-0001': { instanceId: 'inst_123', registeredAt: '2026-10-12' },
@@ -97,12 +99,12 @@ async function runNfcWriterTests() {
   const resolved001 = resolveCardToPokemonData('ML-0001', registeredMockMap);
   assert(resolved001 !== null, 'ML-0001 resolves full data');
   assert.strictEqual(resolved001?.isAlreadyRegistered, true, 'Flags duplicate registration correctly');
-  assert(resolved001?.artworkUrl?.includes('official-artwork/1.png'), 'Contains verified official artwork');
+  assert(resolved001?.artworkUrl?.includes('/monsters/monster_001.png'), 'Contains verified monster_001 sprite asset');
 
-  const resolved025 = resolveCardToPokemonData('ML-0025', registeredMockMap);
-  assert(resolved025 !== null, 'ML-0025 resolves full data');
-  assert.strictEqual(resolved025?.isAlreadyRegistered, false, 'Fresh card is not registered yet');
-  assert(resolved025?.artworkUrl?.includes('official-artwork/25.png'), 'Contains Pikachu official artwork');
+  const resolved042 = resolveCardToPokemonData('ML-0042', registeredMockMap);
+  assert(resolved042 !== null, 'ML-0042 resolves full data');
+  assert.strictEqual(resolved042?.isAlreadyRegistered, false, 'Fresh card is not registered yet');
+  assert(resolved042?.artworkUrl?.includes('/monsters/monster_042.png'), 'Contains Jett sprite asset');
   console.log('✅ Visual and duplicate protection tests passed.\n');
 
   // Test 5: Hardware detection schema
@@ -117,13 +119,13 @@ async function runNfcWriterTests() {
   console.log('Test 6: Write & Verify Sequence & Step Tracking...');
   const { simulateWriteAndVerify } = await import('../src/lib/nfc/ntag215-service');
   let progressCalled = false;
-  const verifyRes = simulateWriteAndVerify('ML-0025', (steps) => {
+  const verifyRes = simulateWriteAndVerify('ML-0042', (steps) => {
     progressCalled = true;
     assert(Array.isArray(steps), 'Steps must be an array');
     assert.strictEqual(steps.length, 4, 'Must have 4 verification steps');
   });
   assert.strictEqual(verifyRes.verified, true, 'Result verified must be true');
-  assert.strictEqual(verifyRes.cardCode, 'ML-0025', 'Card code verified matches');
+  assert.strictEqual(verifyRes.cardCode, 'ML-0042', 'Card code verified matches');
   assert(progressCalled, 'Progress callback was triggered');
   assert.strictEqual(verifyRes.steps[3].status, 'success', 'Final verification step must succeed');
   console.log('✅ Write & verify sequence tests passed.\n');

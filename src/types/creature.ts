@@ -1,4 +1,22 @@
-export type ElementType = 'Fire' | 'Water' | 'Grass' | 'Electric' | 'Normal';
+export type ElementType =
+  | 'Fire'
+  | 'Water'
+  | 'Grass'
+  | 'Electric'
+  | 'Ghost'
+  | 'Rock'
+  | 'Ice'
+  | 'Flying'
+  | 'Fairy'
+  | 'Steel'
+  | 'Ground'
+  | 'Dark'
+  | 'Dragon'
+  | 'Poison'
+  | 'Fighting'
+  | 'Bug'
+  | 'Psychic'
+  | 'Normal';
 
 export type RarityTier = 'Common' | 'Uncommon' | 'Rare' | 'Legendary';
 
