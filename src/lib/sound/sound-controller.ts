@@ -106,6 +106,111 @@ class SoundController {
     }
   }
 
+  // Battle: Fire move (whoosh + sizzle explosion)
+  public playFireMove() {
+    this.playHit();
+    this.playTone(320, 'sawtooth', 0.22, 0.2, 0.01);
+    setTimeout(() => this.playTone(180, 'square', 0.25, 0.25, 0.01), 60);
+  }
+
+  // Battle: Water move (rapid bubbling cascade)
+  public playWaterMove() {
+    const bubbles = [400, 600, 520, 750, 640];
+    bubbles.forEach((freq, idx) => {
+      setTimeout(() => {
+        this.playTone(freq, 'sine', 0.08, 0.18, 0.01);
+      }, idx * 45);
+    });
+  }
+
+  // Battle: Grass move (sharp leafy whip slash)
+  public playGrassMove() {
+    this.playHit();
+    this.playTone(880, 'triangle', 0.1, 0.2, 0.01);
+    setTimeout(() => this.playTone(550, 'sawtooth', 0.15, 0.15, 0.01), 50);
+  }
+
+  // Battle: Electric move (rapid high voltage discharge zaps)
+  public playElectricMove() {
+    const freqs = [800, 300, 950, 420, 1100];
+    freqs.forEach((freq, idx) => {
+      setTimeout(() => {
+        this.playTone(freq, 'sawtooth', 0.06, 0.22, 0.01);
+      }, idx * 35);
+    });
+  }
+
+  // Battle: Ice move (chime frost shatter)
+  public playIceMove() {
+    const notes = [880, 1175, 1568];
+    notes.forEach((freq, idx) => {
+      setTimeout(() => {
+        this.playTone(freq, 'triangle', 0.12, 0.2, 0.01);
+      }, idx * 60);
+    });
+    setTimeout(() => this.playHit(), 120);
+  }
+
+  // Battle: Rock / Ground move (deep rumble and shatter)
+  public playRockMove() {
+    this.playHit();
+    this.playTone(110, 'square', 0.35, 0.3, 0.01);
+    setTimeout(() => this.playTone(75, 'sawtooth', 0.28, 0.25, 0.01), 70);
+  }
+
+  // Battle: Ghost / Dark move (ominous descending distortion)
+  public playShadowMove() {
+    this.playTone(330, 'sawtooth', 0.25, 0.2, 0.01);
+    setTimeout(() => this.playTone(220, 'sawtooth', 0.3, 0.22, 0.01), 80);
+    setTimeout(() => this.playTone(146, 'square', 0.35, 0.25, 0.01), 160);
+  }
+
+  // Battle: Flying / Wind move (whirling gale rush)
+  public playWindMove() {
+    this.playTone(587, 'sine', 0.2, 0.18, 0.01);
+    setTimeout(() => this.playTone(784, 'triangle', 0.18, 0.2, 0.01), 60);
+  }
+
+  // Dispatch sound by elemental type
+  public playSkillSound(elementType?: string) {
+    switch (elementType?.toLowerCase()) {
+      case 'fire':
+        this.playFireMove();
+        break;
+      case 'water':
+        this.playWaterMove();
+        break;
+      case 'grass':
+        this.playGrassMove();
+        break;
+      case 'electric':
+        this.playElectricMove();
+        break;
+      case 'ice':
+        this.playIceMove();
+        break;
+      case 'rock':
+      case 'ground':
+      case 'steel':
+        this.playRockMove();
+        break;
+      case 'ghost':
+      case 'dark':
+      case 'psychic':
+      case 'poison':
+        this.playShadowMove();
+        break;
+      case 'flying':
+      case 'fairy':
+      case 'dragon':
+        this.playWindMove();
+        break;
+      default:
+        this.playHit();
+        break;
+    }
+  }
+
   // Battle: Super Effective strike
   public playSuperEffective() {
     this.playHit();

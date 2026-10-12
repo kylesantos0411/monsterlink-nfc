@@ -14,6 +14,7 @@ import { Sound } from '@/lib/sound/sound-controller';
 import { formatCardIdentifier, resolveCardToPokemonData, writeAndVerifyNtag215Card, simulateWriteAndVerify } from '@/lib/nfc/ntag215-service';
 import { PokemonSpeciesRecord } from '@/types/pokemon';
 import { ResolvedCardData, NfcVerificationStep } from '@/types/nfc';
+import { SkillVfxOverlay, resolveSkillVfxType, ActiveSkillVfx } from '@/lib/battle/skill-vfx';
 
 interface ScanLogEntry {
   id: string;
@@ -106,6 +107,7 @@ export default function HomePage() {
   const [oppAnimFaint, setOppAnimFaint] = useState<boolean>(false);
   const [playerAnimLunge, setPlayerAnimLunge] = useState<boolean>(false);
   const [oppAnimLunge, setOppAnimLunge] = useState<boolean>(false);
+  const [activeSkillVfx, setActiveSkillVfx] = useState<ActiveSkillVfx | null>(null);
   const [battleResultModal, setBattleResultModal] = useState<{
     victory: boolean;
     turns: number;
@@ -559,6 +561,7 @@ export default function HomePage() {
     setOppAnimLunge(false);
     setPlayerAnimFaint(false);
     setOppAnimFaint(false);
+    setActiveSkillVfx(null);
     setBattleResultModal(null);
   }
 
@@ -572,33 +575,71 @@ export default function HomePage() {
 
     const turnResult = activeEngine.executeTurn(moveId);
 
-    // 1. Player lunges forward toward opponent to execute attack
+    // 1. Resolve player move & unique elemental VFX
+    const playerMove = MOVES[moveId];
+    const playerVfxType = resolveSkillVfxType(moveId, playerMove?.type);
+
+    // 2. Player lunges forward toward opponent to execute attack
     setPlayerAnimLunge(true);
     setTimeout(() => setPlayerAnimLunge(false), 280);
 
-    // 2. Opponent shakes from player attack impact
+    // 3. Play distinctive elemental sound and display move VFX on opponent
+    Sound.playSkillSound(playerMove?.type);
+    setActiveSkillVfx({
+      moveId,
+      moveName: playerMove ? playerMove.name : moveId,
+      type: playerVfxType,
+      elementType: playerMove ? playerMove.type : 'Normal',
+      target: 'opponent'
+    });
+
+    // 4. Opponent shakes from player attack impact
     setTimeout(() => {
       setOppAnimShake(true);
-      Sound.playHit();
       setTimeout(() => setOppAnimShake(false), 350);
-    }, 150);
+    }, 180);
+
+    // Clear player move VFX
+    setTimeout(() => {
+      setActiveSkillVfx(prev => prev?.target === 'opponent' ? null : prev);
+    }, 550);
 
     // Step narration sequence
     const narrationTexts = turnResult.steps.map(s => s.narrationLog);
     setBattleDialogue(narrationTexts.join('\n'));
 
-    // 3. If opponent counter-attacks, opponent lunges and player takes hit
-    if (turnResult.steps.some(s => s.actor === 'opponent' && s.damageDealt > 0)) {
+    // 5. If opponent counter-attacks, trigger opponent move VFX and player hit
+    const oppStep = turnResult.steps.find(s => s.actor === 'opponent' && s.damageDealt > 0);
+    if (oppStep) {
       setTimeout(() => {
+        const oppMove = oppStep.moveUsed;
+        const oppVfxType = resolveSkillVfxType(oppMove.id, oppMove.type);
+
+        // Opponent lunges
         setOppAnimLunge(true);
         setTimeout(() => setOppAnimLunge(false), 280);
 
+        // Play opponent's elemental sound & trigger VFX on player
+        Sound.playSkillSound(oppMove.type);
+        setActiveSkillVfx({
+          moveId: oppMove.id,
+          moveName: oppMove.name,
+          type: oppVfxType,
+          elementType: oppMove.type,
+          target: 'player'
+        });
+
+        // Player shakes from damage impact
         setTimeout(() => {
           setPlayerAnimShake(true);
-          Sound.playHit();
           setTimeout(() => setPlayerAnimShake(false), 350);
-        }, 150);
-      }, 550);
+        }, 180);
+
+        // Clear opponent VFX
+        setTimeout(() => {
+          setActiveSkillVfx(prev => prev?.target === 'player' ? null : prev);
+        }, 550);
+      }, 650);
     }
 
     if (turnResult.isBattleOver) {
@@ -1545,6 +1586,9 @@ export default function HomePage() {
                       </div>
                     </div>
                     <div className="sprite-platform opp-platform">
+                      {activeSkillVfx && activeSkillVfx.target === 'opponent' && (
+                        <SkillVfxOverlay vfx={activeSkillVfx} />
+                      )}
                       <div 
                         className={`sprite-holder ${oppAnimShake ? 'anim-shake' : ''} ${oppAnimFaint ? 'anim-faint' : ''} ${oppAnimLunge ? 'anim-lunge-opp' : ''}`} 
                         id="opp-sprite-holder"
@@ -1559,6 +1603,9 @@ export default function HomePage() {
                   {/* Player Platform (Bottom Left) */}
                   <div className="combat-unit player-unit">
                     <div className="sprite-platform player-platform">
+                      {activeSkillVfx && activeSkillVfx.target === 'player' && (
+                        <SkillVfxOverlay vfx={activeSkillVfx} />
+                      )}
                       <div 
                         className={`sprite-holder ${playerAnimShake ? 'anim-shake' : ''} ${playerAnimFaint ? 'anim-faint' : ''} ${playerAnimLunge ? 'anim-lunge-player' : ''}`} 
                         id="player-sprite-holder"
